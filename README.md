@@ -102,7 +102,10 @@ SlnProy_DSWI_NinaJose/
 │   ├── Usuario.cs
 │   └── ViewModels/
 │       ├── Login.cs
+│       ├── LoginViewModel.cs
 │       ├── Register.cs
+│       ├── RegisterViewModel.cs
+│       ├── ProductoCat.cs              - ViewModel para catálogo de productos
 │       ├── OrdenConfirmation.cs
 │       └── OrdenItem.cs
 ├── Views/
@@ -130,8 +133,10 @@ SlnProy_DSWI_NinaJose/
 
 ### Gestión de Productos
 - Catálogo de productos organizado por categorías
+- Página de inicio con productos destacados
 - Visualización de detalles del producto
-- Administración CRUD de productos
+- Administración CRUD de productos (solo Admin)
+- ViewModel ProductoCat para separación de responsabilidades en la presentación
 
 ### Carrito de Compras
 - Carrito basado en sesiones
@@ -157,6 +162,9 @@ La aplicación utiliza las siguientes variables de conexión en appsettings.json
 - El proyecto utiliza Nullable Reference Types (C# 11+)
 - Las sesiones se almacenan en memoria
 - La autenticación se basa en cookies HTTP-only
+- ViewModels utilizados para separación de responsabilidades en las vistas
+- Uso de LINQ para consultas a base de datos con Entity Framework Core
+- Incluye validación de modelos con atributos de datos
 
 ## Autores
 
