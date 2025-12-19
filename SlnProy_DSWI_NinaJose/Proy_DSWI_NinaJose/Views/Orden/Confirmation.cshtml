@@ -1,5 +1,4 @@
-﻿@model Proy_DSWI_NinaJose.Models.ViewModels.OrderConfirmation
-
+﻿@model Proy_DSWI_NinaJose.Models.Orden
 @{
     ViewData["Title"] = "Orden Procesada";
     Layout = "_Layout";
@@ -7,12 +6,13 @@
 
 <div class="container py-5">
     <div class="alert alert-success">
-        <h4 class="alert-heading">Estimado cliente, su orden fue procesada</h4>
-        <p>Los detalles son los siguientes:</p>
-
+        <h4 class="alert-heading">
+            Orden #@Model.IdOrden procesada con éxito
+        </h4>
+        <p>Estimado cliente, su orden fue procesada.</p>
         <ul>
-            <li><strong>Nombre:</strong> @Model.NombreCliente</li>
-            <li><strong>Email:</strong> @Model.EmailCliente</li>
+            <li><strong>Nombre:</strong> @Model.Usuario.Nombre</li>
+            <li><strong>Email:</strong> @Model.Usuario.Email</li>
         </ul>
 
         <h5>Productos:</h5>
@@ -26,27 +26,29 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in Model.Items)
+                @foreach (var d in Model.OrdenDetalles)
                 {
                     <tr>
-                        <td>@item.Nombre</td>
-                        <td class="text-center">@item.Cantidad</td>
-                        <td class="text-end">S/ @item.PrecioUnitario.ToString("F2")</td>
-                        <td class="text-end">S/ @item.Subtotal.ToString("F2")</td>
+                        <td>@d.Producto.Nombre</td>
+                        <td class="text-center">@d.Cantidad</td>
+                        <td class="text-end">S/ @d.PrecioUnitario.ToString("F2")</td>
+                        <td class="text-end">S/ @(d.Cantidad * d.PrecioUnitario)</td>
                     </tr>
                 }
             </tbody>
             <tfoot>
                 <tr>
                     <th colspan="3" class="text-end">Monto total:</th>
-                    <th class="text-end">S/ @Model.MontoTotal.ToString("F2")</th>
+                    <th class="text-end">S/ @Model.Total.ToString("F2")</th>
                 </tr>
             </tfoot>
         </table>
 
         <hr />
         <p>¡Gracias por su compra!</p>
-        <a asp-controller="Producto" asp-action="IndexProductos" class="btn btn-primary">
+        <a asp-controller="Producto"
+           asp-action="IndexProductos"
+           class="btn btn-primary">
             Volver al catálogo
         </a>
     </div>

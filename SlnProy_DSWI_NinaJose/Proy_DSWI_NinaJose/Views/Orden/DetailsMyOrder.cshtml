@@ -1,38 +1,40 @@
 ﻿@model Proy_DSWI_NinaJose.Models.Orden
-
+@using System.Globalization
 @{
     ViewData["Title"] = $"Orden #{Model.IdOrden}";
-    Layout = "_Layout";
 }
 
-<div class="container py-4">
-    <h2>@ViewData["Title"]</h2>
+<h2>@ViewData["Title"]</h2>
 
-    <p><strong>Fecha:</strong> @Model.Fecha.ToString("f")</p>
-    <p><strong>Total:</strong> S/ @Model.Total.ToString("F2")</p>
-
-    <h5>Productos:</h5>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th class="text-center">Cantidad</th>
-                <th class="text-end">Precio unitario</th>
-                <th class="text-end">Subtotal</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var det in Model.OrdenDetalles)
-            {
-                <tr>
-                    <td>@det.Producto?.Nombre</td>
-                    <td class="text-center">@det.Cantidad</td>
-                    <td class="text-end">S/ @det.PrecioUnitario.ToString("F2")</td>
-                    <td class="text-end">
-                        S/ @(det.PrecioUnitario * det.Cantidad).ToString("F2")
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="mb-3">
+    <strong>Fecha:</strong> @Model.Fecha.ToString("f", CultureInfo.CurrentCulture)<br />
+    <strong>Estado:</strong> @Model.Estado<br />
+    <strong>Total:</strong> S/ @Model.Total.ToString("F2")<br />
+    <strong>Cliente:</strong> @Model.Usuario.Nombre (@Model.Usuario.Email)
 </div>
+
+<h4>Detalles</h4>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th class="text-center">Cantidad</th>
+            <th class="text-end">Precio Unit.</th>
+            <th class="text-end">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var d in Model.OrdenDetalles)
+        {
+            <tr>
+                <td>@d.Producto.Nombre</td>
+                <td class="text-center">@d.Cantidad</td>
+                <td class="text-end">S/ @d.PrecioUnitario.ToString("F2")</td>
+                <td class="text-end">S/ @String.Format("{0:F2}", d.Cantidad * d.PrecioUnitario)</td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

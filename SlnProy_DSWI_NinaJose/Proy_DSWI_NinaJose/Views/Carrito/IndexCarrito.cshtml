@@ -19,9 +19,7 @@
                 <div class="text-center text-muted py-5">
                     <i class="bi bi-cart-x" style="font-size: 4rem;"></i>
                     <p class="mt-3 fs-5">Tu carrito está vacío.</p>
-                    <button type="button"
-                            class="btn btn-primary"
-                            onclick="goBack()">
+                    <button type="button" class="btn btn-primary" onclick="goBack()">
                         Seguir comprando
                     </button>
                 </div>
@@ -45,17 +43,14 @@
                             {
                                 <tr data-id="@item.ProductoId">
                                     <td style="width: 80px;">
-                                        <img src="@item.ImagenUrl"
-                                             class="img-fluid rounded"
+                                        <img src="@item.ImagenUrl" class="img-fluid rounded"
                                              onerror="this.onerror=null;this.src='/images/no-image.png';" />
                                     </td>
                                     <td>@item.Nombre</td>
                                     <td class="text-end price-cell">S/ @item.Precio.ToString("F2")</td>
                                     <td class="text-center">
                                         <div class="input-group input-group-sm justify-content-center">
-                                            <input type="number"
-                                                   value="@item.Cantidad"
-                                                   min="1"
+                                            <input type="number" value="@item.Cantidad" min="1"
                                                    class="form-control cart-qty-input"
                                                    style="max-width: 80px;" />
                                             <button type="button"
@@ -88,14 +83,18 @@
             <div class="card-footer bg-white d-flex justify-content-between align-items-center">
                 <div>
                     <strong>Total:</strong>
-                    <span id="cart-total" class="fs-5">S/ @Model.Sum(i => i.Subtotal).ToString("F2")</span>
+                    <span id="cart-total" class="fs-5">
+                        S/ @Model.Sum(i => i.Subtotal).ToString("F2")
+                    </span>
                 </div>
                 <div>
                     <button class="btn btn-outline-secondary me-2" onclick="goBack()">
                         Seguir comprando
                     </button>
+
+                    @* Aquí hacemos POST a CheckoutPost *@
                     <form asp-controller="Orden"
-                          asp-action="Checkout"
+                          asp-action="CheckoutPost"
                           method="post"
                           class="d-inline">
                         @Html.AntiForgeryToken()
@@ -112,68 +111,114 @@
 @section Scripts {
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Volver al catálogo o atrás
+        // Volver atrás o a catálogo
         function goBack() {
-                window.location.href = '@Url.Action("IndexProductos", "Producto")';      
+            if (window.history.length > 1) window.history.back();
+            else window.location.href = '@Url.Action("IndexProductos", "Producto")';
         }
 
-        // Actualiza la fila y el total
-        async function updateQuantity(row, newQty) {
-            const id = row.dataset.id;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const resp = await fetch('/Carrito/UpdateQuantity', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ id: +id, cantidad: +newQty })
-            });
-            const data = await resp.json();
-            if (data.success) {
-                row.querySelector('.subtotal-cell').textContent = 'S/ ' + data.newSubtotal.toFixed(2);
-                document.getElementById('cart-total').textContent = 'S/ ' + data.newTotal.toFixed(2);
-            } else {
-                alert('Error al actualizar cantidad');
-            }
-        }
-
-        // Elimina la fila y actualiza el total
-        async function removeItem(row) {
-            const id = row.dataset.id;
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            const resp = await fetch('/Carrito/RemoveFromCart', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                body: JSON.stringify({ id: +id })
-            });
-            const data = await resp.json();
-            if (data.success) {
-                row.remove();
-                document.getElementById('cart-total').textContent = 'S/ ' + data.newTotal.toFixed(2);
-                if (!document.querySelector('#cart-body tr')) {
-                    location.reload(); // vaciar carrito => recarga para mostrar estado vacío
-                }
-            } else {
-                alert('Error al eliminar producto');
-            }
-        }
-
-        // Delegación de eventos
         document.addEventListener('click', function (e) {
-            const updateBtn = e.target.closest('.cart-update-btn');
-            const removeBtn = e.target.closest('.cart-remove-btn');
+            // =========================
+            // 1) ACTUALIZAR CANTIDAD
+            // =========================
+            var updateBtn = e.target.closest('.cart-update-btn');
             if (updateBtn) {
-                const row = updateBtn.closest('tr');
-                const qtyInput = row.querySelector('.cart-qty-input');
-                let qty = parseInt(qtyInput.value) || 1;
-                if (qty < 1) qty = 1;
-                qtyInput.value = qty;
-                updateQuantity(row, qty);
+                var row = updateBtn.closest('tr[data-id]');
+                var id = row.getAttribute('data-id');
+                var qtyInput = row.querySelector('.cart-qty-input');
+                var cantidad = qtyInput.value;
+
+                // Token antiforgery
+                var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                var token = tokenEl ? tokenEl.value : '';
+
+                // Prepara FormData
+                var data = new FormData();
+                data.append('__RequestVerificationToken', token);
+                data.append('id', id);
+                data.append('cantidad', cantidad);
+
+                // Llama a Carrito/UpdateQuantity
+                fetch('@Url.Action("UpdateQuantity", "Carrito")', {
+                    method: 'POST',
+                    body: data
+                })
+                    .then(function (res) {
+                        if (!res.ok) {
+                            return res.text().then(function (txt) { throw new Error(txt); });
+                        }
+                        return res.json();
+                    })
+                    .then(function (json) {
+                        // Actualiza badge global
+                        var badge = document.getElementById('cartCountBadge');
+                        if (badge) badge.textContent = json.newCount;
+                        // Actualiza subtotal de esta fila
+                        var subCell = row.querySelector('.subtotal-cell');
+                        subCell.textContent = 'S/ ' + json.newSubtotal.toFixed(2);
+                        // Actualiza total general
+                        var totalEl = document.getElementById('cart-total');
+                        totalEl.textContent = 'S/ ' + json.newTotal.toFixed(2);
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        alert('Error al actualizar cantidad: ' + err.message);
+                    });
+
+                return;
             }
+
+            // =========================
+            // 2) ELIMINAR PRODUCTO
+            // =========================
+            var removeBtn = e.target.closest('.cart-remove-btn');
             if (removeBtn) {
-                const row = removeBtn.closest('tr');
-                if (confirm('¿Eliminar este producto del carrito?')) {
-                    removeItem(row);
-                }
+                var row = removeBtn.closest('tr[data-id]');
+                var id = row.getAttribute('data-id');
+
+                // Token antiforgery
+                var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+                var token = tokenEl ? tokenEl.value : '';
+
+                // Prepara FormData
+                var data = new FormData();
+                data.append('__RequestVerificationToken', token);
+                data.append('id', id);
+
+                // Llama a Carrito/RemoveFromCart
+                fetch('@Url.Action("RemoveFromCart", "Carrito")', {
+                    method: 'POST',
+                    body: data
+                })
+                    .then(function (res) {
+                        if (!res.ok) {
+                            return res.text().then(function (txt) { throw new Error(txt); });
+                        }
+                        return res.json();
+                    })
+                    .then(function (json) {
+                        // Actualiza badge global
+                        var badge = document.getElementById('cartCountBadge');
+                        if (badge) badge.textContent = json.newCount;
+                        // Elimina la fila del DOM
+                        row.parentNode.removeChild(row);
+                        // Actualiza total general
+                        var totalEl = document.getElementById('cart-total');
+                        totalEl.textContent = 'S/ ' + json.newTotal.toFixed(2);
+
+                        // Si queda vacío, recarga la página o muestra mensaje vacío
+                        if (json.newCount === 0) {
+                            location.reload();
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                        alert('Error al eliminar producto: ' + err.message);
+                    });
+
+                return;
             }
         });
     </script>
 }
+

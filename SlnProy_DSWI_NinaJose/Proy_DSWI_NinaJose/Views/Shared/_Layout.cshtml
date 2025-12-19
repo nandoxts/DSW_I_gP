@@ -3,15 +3,15 @@
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
-    // Inicializa el contador del carrito desde la sesión
-    var sessionCart = Context.Session
-        .GetObject<List<Carrito>>("Carrito")
-        ?? new List<Carrito>();
+    // Lee carrito de sesión para badge
+    var sessionCart = Context.Session.GetObject<List<Carrito>>("Carrito") ?? new List<Carrito>();
     var initialCount = sessionCart.Sum(c => c.Cantidad);
+
+    // Detecta si estamos en la vista Carrito/IndexCarrito
     var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
     var act = ViewContext.RouteData.Values["Action"]?.ToString();
-    bool enCarrito = string.Equals(ctrl, "Carrito", System.StringComparison.OrdinalIgnoreCase)
-                  && string.Equals(act, "IndexCarrito", System.StringComparison.OrdinalIgnoreCase);
+    bool enCarrito = string.Equals(ctrl, "Carrito", StringComparison.OrdinalIgnoreCase)
+                  && string.Equals(act, "IndexCarrito", StringComparison.OrdinalIgnoreCase);
 }
 
 <!DOCTYPE html>
@@ -28,12 +28,18 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-3">
         <div class="container">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">MiTienda</a>
+            <a class="navbar-brand d-flex align-items-center" asp-controller="Producto" asp-action="IndexProductos">
+                <img src="~/productos_catalogo/LogoTienda.png"
+                    alt="MiTienda"
+                        style="height:60px; margin-right:0.5rem; object-fit:contain;" />
+            </a>
+
             <button class="navbar-toggler" type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarContent">
+                    data-bs-toggle="collapse" data-bs-target="#navbarContent"
+                    aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarContent">
                 <ul class="navbar-nav ms-auto align-items-center">
                     @if (!User.Identity.IsAuthenticated)
@@ -51,40 +57,53 @@
                         {
                             <li class="nav-item me-2">
                                 <a class="btn btn-outline-success position-relative"
-                                   asp-controller="Carrito"
-                                   asp-action="IndexCarrito">
+                                   asp-controller="Carrito" asp-action="IndexCarrito">
                                     <i class="bi bi-cart-fill fs-4"></i>
                                     <span id="cartCountBadge"
-                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                          class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger @(initialCount == 0 ? "d-none" : "")">
                                         @initialCount
                                     </span>
                                 </a>
                             </li>
                         }
-                        <li class="nav-item dropdown">
-                            <button class="btn btn-link nav-link fs-4 p-0"
-                                    id="settingsDropdown"
-                                    data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                <i class="bi bi-gear-fill"></i>
+
+
+                        @* Mi perfil *@
+                        <li class="nav-item ms-3">
+                            <button class="btn btn-link nav-link" onclick="showProfile()">
+                                <i class="bi bi-person-circle me-1"></i> Mi perfil
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
-                                <li>
-                                    <button class="dropdown-item d-flex align-items-center" onclick="showProfile()">
-                                        <i class="bi bi-person-circle me-2"></i>Mi perfil
-                                    </button>
-                                </li>
-                                <li><hr class="dropdown-divider" /></li>
-                                <li>
-                                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item d-flex align-items-center">
-                                            <i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
                         </li>
+
+                        @* Órdenes/Mis órdenes *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Orden" asp-action="AllOrders">
+                                    <i class="bi bi-card-list me-1"></i> Órdenes
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Orden" asp-action="MyOrders">
+                                    <i class="bi bi-bag-check me-1"></i> Mis órdenes
+                                </a>
+                            </li>
+                        }
+
+                        @* Cerrar sesión *@
+                        <li class="nav-item">
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-link nav-link">
+                                    <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+                                </button>
+                            </form>
+                        </li>
+
+
                     }
                 </ul>
             </div>
@@ -101,11 +120,12 @@
         Producto añadido al carrito
     </div>
 
-    <div class="modal fade" id="detallesModal" tabindex="-1" aria-labelledby="detallesModalLabel" aria-hidden="true">
+    <!-- Detalles Modal -->
+    <div class="modal fade" id="detallesModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detallesModalLabel">Detalles del producto</h5>
+                    <h5 class="modal-title">Detalles del producto</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body"></div>
@@ -113,6 +133,7 @@
         </div>
     </div>
 
+    <!-- Perfil Modal -->
     <div class="modal fade" id="perfilModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -125,63 +146,69 @@
         </div>
     </div>
 
-    <!-- Modal Login -->
+    <!-- Login Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Iniciar sesión</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="loginErrors" class="text-danger mb-3"></div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input id="loginEmail" name="Email" type="email" class="form-control" />
+                <form id="loginForm" asp-controller="Account" asp-action="Login" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title">Iniciar sesión</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <input id="loginPassword" name="Password" type="password" class="form-control" />
+                    <div class="modal-body">
+                        <div id="loginValidation" class="text-danger mb-3"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input id="loginEmail" name="Email" type="email" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input id="loginPassword" name="Password" type="password" class="form-control" />
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-link p-0" onclick="showRegisterModal()">Regístrate</button>
-                    <button id="btnLogin" class="btn btn-primary">Ingresar</button>
-                </div>
+                    <div class="modal-footer d-flex justify-content-between">
+                        <button type="button" class="btn btn-link p-0" onclick="showRegisterModal()">Regístrate</button>
+                        <button type="submit" class="btn btn-primary">Ingresar</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 
-
+    <!-- Register Modal -->
     <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Registrarse</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="regErrors" class="text-danger mb-3"></div>
-                    <div class="mb-3">
-                        <label class="form-label">Nombre</label>
-                        <input id="regNombre" type="text" class="form-control" />
+                <form id="regForm" asp-controller="Account" asp-action="Register" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title">Registrarse</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input id="regEmail" type="email" class="form-control" />
+                    <div class="modal-body">
+                        <div id="regValidation" class="text-danger mb-3"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombre</label>
+                            <input id="regNombre" name="Nombre" type="text" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input id="regEmail" name="Email" type="email" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña</label>
+                            <input id="regPassword" name="Password" type="password" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Confirmar Contraseña</label>
+                            <input id="regConfirm" name="ConfirmPassword" type="password" class="form-control" />
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Contraseña</label>
-                        <input id="regPassword" type="password" class="form-control" />
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Crear cuenta</button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Confirmar Contraseña</label>
-                        <input id="regConfirm" type="password" class="form-control" />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button id="btnRegister" class="btn btn-success">Crear cuenta</button>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -190,9 +217,8 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function closeAllModals() {
-            document.querySelectorAll('.modal.show').forEach(el => {
-                bootstrap.Modal.getInstance(el)?.hide();
-            });
+            document.querySelectorAll('.modal.show')
+                .forEach(el => bootstrap.Modal.getInstance(el)?.hide());
         }
 
         function showDetails(url) {
@@ -201,120 +227,98 @@
                 .then(r => r.ok ? r.text() : Promise.reject())
                 .then(html => {
                     document.querySelector('#detallesModal .modal-body').innerHTML = html;
-                    new bootstrap.Modal(document.getElementById('detallesModal')).show();
-                })
-                .catch(console.error);
+                    new bootstrap.Modal('#detallesModal').show();
+                });
         }
 
-        function updateBadge(count) {
-            $('#cartCountBadge').text(count);
-        }
-
-        function flashAddedAlert() {
-            $('#addCartAlert').removeClass('d-none');
-            setTimeout(() => $('#addCartAlert').addClass('d-none'), 2000);
-        }
-
-        $(document).on('click', '.index-add-btn', function () {
-            const id = $(this).data('id');
-            const token = $('input[name="__RequestVerificationToken"]').first().val();
-            $.post('@Url.Action("AddToCart", "Carrito")', {
-                __RequestVerificationToken: token, id: id, cantidad: 1
-            })
-                .done(res => {
-                    updateBadge(res.newCount);
-                    flashAddedAlert();
-                })
-                .fail(() => alert('Error al añadir al carrito.'));
-        });
-
-        $(document).on('click', '#detailAddBtn', function () {
-            const id = $(this).data('id');
-            const qty = $('#detailQty').val();
-            const token = $('input[name="__RequestVerificationToken"]').first().val();
-            $.post('@Url.Action("AddToCart", "Carrito")', {
-                __RequestVerificationToken: token, id: id, cantidad: qty
-            })
-                .done(res => {
-                    updateBadge(res.newCount);
-                    closeAllModals();
-                    flashAddedAlert();
-                })
-                .fail(() => alert('Error al añadir al carrito.'));
-        });
-
-        $(document).on('click', '.cart-update-btn', function () {
-            const row = $(this).closest('tr');
-            const id = row.data('id');
-            const qty = row.find('.cart-qty-input').val();
-            const token = $('input[name="__RequestVerificationToken"]').first().val();
-            $.post('@Url.Action("UpdateQuantity", "Carrito")', {
-                __RequestVerificationToken: token, id: id, cantidad: qty
-            })
-                .done(res => {
-                    row.find('.subtotal-cell').text('S/ ' + res.newSubtotal.toFixed(2));
-                    $('#cartTotal').text('S/ ' + res.newTotal.toFixed(2));
-                    updateBadge(res.newCount);
-                })
-                .fail(() => alert('Error al actualizar.'));
-        });
-
-        $(document).on('click', '.cart-remove-btn', function () {
-            const row = $(this).closest('tr');
-            const id = row.data('id');
-            const token = $('input[name="__RequestVerificationToken"]').first().val();
-            $.post('@Url.Action("RemoveFromCart", "Carrito")', {
-                __RequestVerificationToken: token, id: id
-            })
-                .done(res => {
-                    row.remove();
-                    $('#cartTotal').text('S/ ' + res.newTotal.toFixed(2));
-                    updateBadge(res.newCount);
-                })
-                .fail(() => alert('Error al eliminar.'));
-        });
-
-        function showLoginModal() {
-            closeAllModals();
-            new bootstrap.Modal(document.getElementById('loginModal')).show();
-        }
-        function showRegisterModal() {
-            closeAllModals();
-            new bootstrap.Modal(document.getElementById('registerModal')).show();
-        }
         function showProfile() {
             closeAllModals();
-            const modal = new bootstrap.Modal(document.getElementById('perfilModal'));
             fetch('@Url.Action("Profile", "Profile")')
                 .then(r => r.ok ? r.text() : Promise.reject())
                 .then(html => {
                     document.getElementById('perfilModalBody').innerHTML = html;
-                    modal.show();
-                })
-                .catch(console.error);
+                    new bootstrap.Modal('#perfilModal').show();
+                });
         }
-    </script>
-    <script>
-        $('#btnLogin').click(function () {
-            const email = $('#loginEmail').val();
-            const pwd = $('#loginPassword').val();
 
-            // Envía por AJAX al endpoint Account/Login
-            $.post('@Url.Action("Login", "Account")',
-                {
-                    Email: email,
-                    Password: pwd
+        function showLoginModal() {
+            closeAllModals();
+            new bootstrap.Modal('#loginModal').show();
+        }
+
+        function showRegisterModal() {
+            closeAllModals();
+            new bootstrap.Modal('#registerModal').show();
+        }
+
+        // Añadir al carrito
+        $(document).on('click', '.index-add-btn', function () {
+            var id = $(this).data('id'),
+                token = $('input[name="__RequestVerificationToken"]').first().val();
+            $.post('@Url.Action("AddToCart", "Carrito")',
+                { __RequestVerificationToken: token, id: id, cantidad: 1 })
+                .done(function (res) {
+                    $('#addCartAlert').removeClass('d-none');
+                    setTimeout(() => $('#addCartAlert').addClass('d-none'), 1500);
+                    $('#cartCountBadge').text(res.newCount).removeClass('d-none');
+                });
+        });
+
+        // LOGIN AJAX
+        $(document).on('submit', '#loginForm', function (e) {
+            e.preventDefault();
+            var $f = $(this);
+            $.post($f.attr('action'), $f.serialize())
+                .done(function (res) {
+                    if (res.success) location.reload();
+                    else $('#loginValidation').html(res.errors.join('<br/>'));
                 })
-                .done(res => {
-                    if (res.success) {
-                        location.reload();      // Login OK: recarga para actualizar estado
-                    } else {
-                        // Respuesta con errores: lista de strings en res.errors
-                        $('#loginErrors').html(res.errors.join('<br>'));
-                    }
+                .fail(function () { $('#loginValidation').text('Error en el servidor.'); });
+        });
+
+        // REGISTER AJAX
+        $(document).on('submit', '#regForm', function (e) {
+            e.preventDefault();
+            var $f = $(this);
+            $.post($f.attr('action'), $f.serialize())
+                .done(function (res) {
+                    if (res.success) location.reload();
+                    else $('#regValidation').html(res.errors.join('<br/>'));
                 })
-                .fail(() => {
-                    $('#loginErrors').text('Error en el servidor.');
+                .fail(function () { $('#regValidation').text('Error en el servidor.'); });
+        });
+    </script>
+
+    <script>
+        // … código existente para index-add-btn …
+
+        // === Captura el click en el botón del modal de detalles ===
+        $(document).on('click', '#detailAddBtn', function () {
+            var id = $(this).data('id');
+            var qty = parseInt($('#detailQty').val(), 10) || 1;
+            var token = $('#detailForm input[name="__RequestVerificationToken"]').val();
+
+            $.post(
+                '@Url.Action("AddToCart", "Carrito")',
+                { __RequestVerificationToken: token, id: id, cantidad: qty }
+            )
+                .done(function (res) {
+                    // 1) Actualiza el badge global
+                    $('#cartCountBadge')
+                        .text(res.newCount)
+                        .removeClass('d-none');
+
+                    // 2) Cierra el modal de detalles
+                    $('#detallesModal').modal('hide');
+
+                    // 3) Muestra la alerta
+                    $('#addCartAlert').removeClass('d-none');
+                    setTimeout(function () {
+                        $('#addCartAlert').addClass('d-none');
+                    }, 1500);
+                })
+                .fail(function () {
+                    alert('Error al añadir al carrito desde detalles');
                 });
         });
     </script>

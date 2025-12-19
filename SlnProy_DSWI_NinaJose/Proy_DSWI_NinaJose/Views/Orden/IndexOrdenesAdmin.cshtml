@@ -1,0 +1,50 @@
+﻿@model List<Proy_DSWI_NinaJose.Models.Orden>
+@{
+    ViewData["Title"] = "Todas las Órdenes";
+    Layout = "_Layout";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th># Orden</th>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@o.IdOrden</td>
+                <td>@o.Usuario.Nombre</td>
+                <td>@o.Usuario.Email</td>
+                <td>@o.Fecha.ToString("g")</td>
+                <td>S/ @o.Total.ToString("F2")</td>
+                <td>@o.Estado</td>
+                <td>
+                    @if (o.Estado != "Confirmado")
+                    {
+                        <form asp-action="ConfirmOrder" asp-route-id="@o.IdOrden"
+                              method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-success">
+                                Confirmar
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Confirmado</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

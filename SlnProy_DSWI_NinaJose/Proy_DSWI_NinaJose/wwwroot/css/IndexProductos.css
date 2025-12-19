@@ -120,3 +120,11 @@ body {
     .catalog-header p {
         color: #6c757d;
     }
+
+    }
+
+.navbar-brand img {
+    height: 60px;
+    margin-right: 0.5rem;
+    object-fit: contain;
+}

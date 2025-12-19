@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Proy_DSWI_NinaJose.Models;
+using Proy_DSWI_NinaJose.Models.ViewModels;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -21,8 +22,17 @@ namespace Proy_DSWI_NinaJose.Controllers
                 .Include(p => p.Categoria)
                 .ToListAsync();
 
+            // Construir el ViewModel ProductoCat
+            var model = new ProductoCat
+            {
+                Destacados = productos.Take(3).ToList(),
+                ProductosPorCategoria = productos
+                    .GroupBy(p => p.Categoria?.Nombre ?? "Sin categoría")
+                    .ToDictionary(g => g.Key, g => g.ToList())
+            };
+
             // Forzamos la ruta absoluta a la carpeta plural
-            return View("~/Views/Productos/IndexProductos.cshtml", productos);
+            return View("~/Views/Productos/IndexProductos.cshtml", model);
         }
 
         // GET: /Producto/DetailsProducto/5

@@ -26,18 +26,20 @@
                         <dd class="col-sm-8">@Model.Stock unidades</dd>
 
                         <dt class="col-sm-4">Categoría:</dt>
-                        <dd class="col-sm-8">@Model.Categoria?.Nombre ?? "<em>Sin categoría</em>"</dd>
+                        <dd class="col-sm-8">@Model.Categoria?.Nombre</dd>
                     </dl>
 
-                    <!-- Acciones de cliente -->
-                    <div class="mt-4 d-flex align-items-center gap-2">
-                        @if (User.IsInRole("Cliente"))
-                        {
-                            <div class="input-group input-group-sm" style="max-width:120px;">
+                    <!-- ─── Añadir al carrito ─────────────────────────── -->
+                    @if (User.IsInRole("Cliente"))
+                    {
+                        <form id="detailCartForm">
+                            @Html.AntiForgeryToken()
+                            <div class="input-group input-group-sm mb-3" style="max-width:120px;">
                                 <label class="input-group-text" for="detailQty">
                                     <i class="bi bi-basket2"></i>
                                 </label>
                                 <input id="detailQty"
+                                       name="cantidad"
                                        type="number"
                                        class="form-control"
                                        value="1"
@@ -50,22 +52,22 @@
                                     data-id="@Model.IdProducto">
                                 <i class="bi bi-cart-plus-fill me-1"></i> Añadir al carrito
                             </button>
-                        }
-                        else if (User.Identity.IsAuthenticated)
-                        {
-                            <span class="text-warning">No tienes permiso para comprar.</span>
-                        }
-                        else
-                        {
-                            <button type="button"
-                                    class="btn btn-outline-primary"
-                                    onclick="showLoginModal()">
-                                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
-                            </button>
-                        }
-                    </div>
+                        </form>
+                    }
+                    else if (User.Identity.IsAuthenticated)
+                    {
+                        <span class="text-warning">No tienes permiso para comprar.</span>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="btn btn-outline-primary"
+                                onclick="showLoginModal()">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+                        </button>
+                    }
 
-                    <!-- Admin -->
+                    <!-- ─── Botones de Admin ──────────────────────────── -->
                     @if (User.IsInRole("Admin"))
                     {
                         <hr />
@@ -76,6 +78,8 @@
                                class="btn btn-warning">
                                 <i class="bi bi-pencil-fill me-1"></i> Editar
                             </a>
+
+                            <!-- formulario independiente para eliminar -->
                             <form asp-controller="Producto"
                                   asp-action="DeleteProducto"
                                   asp-route-id="@Model.IdProducto"
@@ -93,3 +97,38 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Click en “Añadir al carrito” dentro del modal
+        document.getElementById('detailAddBtn')?.addEventListener('click', function () {
+            var id = this.getAttribute('data-id');
+            var qty = parseInt(document.getElementById('detailQty').value) || 1;
+            var token = document
+                .querySelector('#detailCartForm input[name="__RequestVerificationToken"]')
+                .value;
+
+            fetch('@Url.Action("AddToCart", "Carrito")', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: new URLSearchParams({ id: id, cantidad: qty })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error('Error servidor');
+                    return res.json();
+                })
+                .then(json => {
+                    // actualizar badge si lo tienes
+                    document.getElementById('cartCountBadge')?.classList.remove('d-none');
+                    document.getElementById('cartCountBadge').textContent = json.newCount;
+                    // cerrar modal
+                    bootstrap.Modal.getInstance(document.getElementById('detallesModal')).hide();
+                    // alerta breve
+                    var a = document.getElementById('addCartAlert');
+                    a.classList.remove('d-none');
+                    setTimeout(() => a.classList.add('d-none'), 1500);
+                })
+                .catch(err => alert(err.message));
+        });
+    </script>
+}

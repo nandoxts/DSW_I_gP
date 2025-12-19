@@ -1,63 +1,178 @@
-﻿@model IEnumerable<Proy_DSWI_NinaJose.Models.Producto>
+﻿@model Proy_DSWI_NinaJose.Models.ViewModels.ProductoCat
+@using Proy_DSWI_NinaJose.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
     ViewData["Title"] = "Catálogo de Productos";
     Layout = "_Layout";
 }
+
 <link rel="stylesheet" href="~/css/IndexProductos.css" />
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-0">@ViewData["Title"]</h2>
-        <p class="text-muted">Descubre nuestras piezas únicas de Artesanía Peruana</p>
-    </div>
-    @if (User.IsInRole("Admin"))
-    {
-        <a asp-controller="Producto"
-           asp-action="CreateProducto"
-           class="btn btn-success">
-            <i class="bi bi-plus-circle me-1"></i>Agregar producto
-        </a>
-    }
+<div class="catalog-header mb-4">
+    <h2>@ViewData["Title"]</h2>
+    <p>Descubre nuestras piezas únicas de Artesanía Peruana</p>
 </div>
 
-<div class="catalog-grid">
-    @foreach (var prod in Model)
-    {
-        <div class="catalog-card">
-            <img src="@prod.ImagenUrl" alt="@prod.Nombre"
-                 onerror="this.onerror=null;this.src='/images/no-image.png';" />
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title">@prod.Nombre</h5>
-                <p class="card-text text-truncate">@prod.Descripcion</p>
-                <p class="price">S/ @prod.Precio.ToString("F2")</p>
-                <div class="mt-auto d-grid gap-2">
-                    <button class="btn btn-outline-details"
-                            onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = prod.IdProducto })')">
-                        Detalles
-                    </button>
+@if (Model.Destacados.Any())
+{
+    <h3 class="section-title">Destacados</h3>
+    <div class="catalog-grid">
+        @foreach (var p in Model.Destacados)
+        {
+            <div class="catalog-card">
+                <img src="@p.ImagenUrl"
+                     alt="@p.Nombre"
+                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                <div class="card-body d-flex flex-column">
+                    <h5>@p.Nombre</h5>
+                    <p class="text-truncate">@p.Descripcion</p>
+                    <p class="price">S/ @p.Precio.ToString("F2")</p>
+                    <div class="mt-auto d-flex gap-2">
+                        <!-- Siempre muestro el botón de “Detalles” -->
+                        <button class="btn btn-outline-primary flex-fill"
+                                onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
 
-                    @if (User.IsInRole("Cliente"))
-                    {
-                        <button type="button"
-                                class="btn btn-cart index-add-btn"
-                                data-id="@prod.IdProducto">
-                            <i class="bi bi-cart-plus me-1"></i>Añadir al carrito
-                        </button>
-                    }
-                    else if (User.Identity.IsAuthenticated)
-                    {
-                        <span class="text-muted d-block text-center">Sin permiso</span>
-                    }
-                    else
-                    {
-                        <button type="button"
-                                class="btn btn-cart"
-                                onclick="showLoginModal()">
-                            <i class="bi bi-cart-plus me-1"></i>Añadir al carrito
-                        </button>
-                    }
+                        <!-- Invitados y Clientes ven el botón de compra -->
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <!-- Invitado -->
+                            <button class="btn btn-primary flex-fill" onclick="showLoginModal()">
+                                <i class="bi bi-cart-plus-fill"></i>
+                            </button>
+                        }
+                        else if (User.IsInRole("Cliente"))
+                        {
+                            <!-- Cliente autenticado -->
+                            <button class="btn btn-primary flex-fill index-add-btn"
+                                    data-id="@p.IdProducto">
+                                <i class="bi bi-cart-plus-fill"></i>
+                            </button>
+                        }
+                        <!-- Admin no ve botón -->
+                    </div>
                 </div>
             </div>
+        }
+    </div>
+}
+
+@foreach (var grp in Model.ProductosPorCategoria)
+{
+    <h3 class="section-title">@grp.Key</h3>
+    <div class="catalog-grid">
+        @foreach (var p in grp.Value)
+        {
+            <div class="catalog-card">
+                <img src="@p.ImagenUrl"
+                     alt="@p.Nombre"
+                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                <div class="card-body d-flex flex-column">
+                    <h5>@p.Nombre</h5>
+                    <p class="text-truncate">@p.Descripcion</p>
+                    <p class="price">S/ @p.Precio.ToString("F2")</p>
+                    <div class="mt-auto d-flex gap-2">
+                        <button class="btn btn-outline-primary flex-fill"
+                                onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
+                            <i class="bi bi-eye-fill"></i>
+                        </button>
+
+                        @if (!User.Identity.IsAuthenticated)
+                        {
+                            <!-- Invitado -->
+                            <button class="btn btn-primary flex-fill" onclick="showLoginModal()">
+                                <i class="bi bi-cart-plus-fill"></i>
+                            </button>
+                        }
+                        else if (User.IsInRole("Cliente"))
+                        {
+                            <!-- Cliente autenticado -->
+                            <button class="btn btn-primary flex-fill index-add-btn"
+                                    data-id="@p.IdProducto">
+                                <i class="bi bi-cart-plus-fill"></i>
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Modal de detalles -->
+<div class="modal fade" id="detallesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body"></div>
         </div>
-    }
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Muestra la alerta verde con el mensaje que recibas
+        function flashAlert(msg) {
+            var alertEl = document.getElementById('addCartAlert');
+            alertEl.textContent = msg;
+            alertEl.classList.remove('d-none');
+            setTimeout(function () {
+                alertEl.classList.add('d-none');
+            }, 1500);
+        }
+
+        // Captura clicks en botones .index-add-btn
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('.index-add-btn');
+            if (!btn) return;
+
+            // Lee datos del botón y del antiforgery token
+            var id = btn.getAttribute('data-id');
+            var cantidad = 1;
+            var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            var token = tokenInput ? tokenInput.value : '';
+
+            // Crea FormData con los campos requeridos
+            var formData = new FormData();
+            formData.append('__RequestVerificationToken', token);
+            formData.append('id', id);
+            formData.append('cantidad', cantidad);
+
+            // Envía el POST al controlador
+            fetch('@Url.Action("AddToCart", "Carrito")', {
+                method: 'POST',
+                body: formData
+            })
+                .then(function (response) {
+                    if (!response.ok) {
+                        // Lee texto de error si status != 2xx
+                        return response.text().then(function (text) {
+                            throw new Error(text);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(function (json) {
+                    if (json.success) {
+                        flashAlert('Producto añadido al carrito');
+                        // Si tienes un badge en el layout con id="cartCountBadge", actualízalo:
+                        var badge = document.getElementById('cartCountBadge');
+                        if (badge) badge.textContent = json.newCount;
+                    } else {
+                        throw new Error('Error inesperado en el servidor');
+                    }
+                })
+                .catch(function (err) {
+                    console.error(err);
+                    alert('Error al añadir al carrito: ' + err.message);
+                });
+        });
+    </script>
+}
+
