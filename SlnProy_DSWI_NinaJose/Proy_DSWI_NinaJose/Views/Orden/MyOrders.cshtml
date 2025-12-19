@@ -1,0 +1,45 @@
+﻿@model IEnumerable<Proy_DSWI_NinaJose.Models.Orden>
+
+@{
+    ViewData["Title"] = "Mis Órdenes";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <h2>@ViewData["Title"]</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No tienes órdenes registradas.</div>
+    }
+    else
+    {
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th># Orden</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model)
+                {
+                    <tr>
+                        <td>@o.IdOrden</td>
+                        <td>@o.Fecha.ToString("g")</td>
+                        <td class="text-end">S/ @o.Total.ToString("F2")</td>
+                        <td>
+                            <a asp-action="DetailsMyOrder"
+                               asp-route-id="@o.IdOrden"
+                               class="btn btn-sm btn-outline-primary">
+                                Ver detalles
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

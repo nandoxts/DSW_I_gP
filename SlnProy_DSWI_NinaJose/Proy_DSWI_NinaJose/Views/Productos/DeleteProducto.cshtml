@@ -1,0 +1,42 @@
+﻿@model Proy_DSWI_NinaJose.Models.Producto
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="row">
+    <div class="col-md-5 text-center">
+        <img src="@Model.ImagenUrl" class="img-fluid rounded mb-3"
+             alt="@Model.Nombre"
+             onerror="this.onerror=null;this.src='/images/no-image.png';" />
+    </div>
+    <div class="col-md-7">
+        <h4>@Model.Nombre</h4>
+        <p class="text-muted">@Model.Descripcion</p>
+        <p><strong>Precio:</strong> S/ @Model.Precio.ToString("F2")</p>
+        <p><strong>Stock:</strong> @Model.Stock unidades</p>
+        <p><strong>Categoría:</strong> @Model.Categoria?.Nombre</p>
+
+        <div class="mt-4 d-flex align-items-center gap-2">
+            @if (User.IsInRole("Cliente"))
+            {
+                <input id="detailQty" type="number" class="form-control"
+                       value="1" min="1" max="@Model.Stock" style="width:80px;" />
+
+                <button type="button"
+                        id="detailAddBtn"
+                        class="btn btn-primary"
+                        data-id="@Model.IdProducto">
+                    Añadir
+                </button>
+            }
+            else if (User.Identity.IsAuthenticated)
+            {
+                <span class="text-warning">No tienes permiso para comprar.</span>
+            }
+            else
+            {
+                <button type="button" class="btn btn-primary" onclick="showLoginModal()">
+                    Iniciar sesión para comprar
+                </button>
+            }
+        </div>
+    </div>
+</div>

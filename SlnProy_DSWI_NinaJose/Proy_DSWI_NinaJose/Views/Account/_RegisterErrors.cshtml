@@ -1,0 +1,10 @@
+﻿@model Proy_DSWI_NinaJose.Models.ViewModels.Register
+
+<div class="alert alert-danger">
+    <ul>
+        @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <li>@err.ErrorMessage</li>
+        }
+    </ul>
+</div>

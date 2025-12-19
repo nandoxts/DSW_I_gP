@@ -1,0 +1,95 @@
+﻿@model Proy_DSWI_NinaJose.Models.Producto
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="row g-0">
+            <!-- Imagen -->
+            <div class="col-md-5 text-center p-3">
+                <img src="@Model.ImagenUrl"
+                     class="img-fluid rounded"
+                     alt="@Model.Nombre"
+                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+            </div>
+
+            <!-- Detalles -->
+            <div class="col-md-7">
+                <div class="card-body">
+                    <h3 class="card-title">@Model.Nombre</h3>
+                    <p class="text-muted mb-4">@Model.Descripcion</p>
+
+                    <dl class="row">
+                        <dt class="col-sm-4">Precio:</dt>
+                        <dd class="col-sm-8 fs-5">S/ @Model.Precio.ToString("F2")</dd>
+
+                        <dt class="col-sm-4">Stock:</dt>
+                        <dd class="col-sm-8">@Model.Stock unidades</dd>
+
+                        <dt class="col-sm-4">Categoría:</dt>
+                        <dd class="col-sm-8">@Model.Categoria?.Nombre ?? "<em>Sin categoría</em>"</dd>
+                    </dl>
+
+                    <!-- Acciones de cliente -->
+                    <div class="mt-4 d-flex align-items-center gap-2">
+                        @if (User.IsInRole("Cliente"))
+                        {
+                            <div class="input-group input-group-sm" style="max-width:120px;">
+                                <label class="input-group-text" for="detailQty">
+                                    <i class="bi bi-basket2"></i>
+                                </label>
+                                <input id="detailQty"
+                                       type="number"
+                                       class="form-control"
+                                       value="1"
+                                       min="1"
+                                       max="@Model.Stock" />
+                            </div>
+                            <button type="button"
+                                    id="detailAddBtn"
+                                    class="btn btn-primary"
+                                    data-id="@Model.IdProducto">
+                                <i class="bi bi-cart-plus-fill me-1"></i> Añadir al carrito
+                            </button>
+                        }
+                        else if (User.Identity.IsAuthenticated)
+                        {
+                            <span class="text-warning">No tienes permiso para comprar.</span>
+                        }
+                        else
+                        {
+                            <button type="button"
+                                    class="btn btn-outline-primary"
+                                    onclick="showLoginModal()">
+                                <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+                            </button>
+                        }
+                    </div>
+
+                    <!-- Admin -->
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <hr />
+                        <div class="d-flex gap-2">
+                            <a asp-controller="Producto"
+                               asp-action="EditProducto"
+                               asp-route-id="@Model.IdProducto"
+                               class="btn btn-warning">
+                                <i class="bi bi-pencil-fill me-1"></i> Editar
+                            </a>
+                            <form asp-controller="Producto"
+                                  asp-action="DeleteProducto"
+                                  asp-route-id="@Model.IdProducto"
+                                  method="post"
+                                  onsubmit="return confirm('¿Eliminar este producto?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash-fill me-1"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,179 @@
+﻿@model List<Proy_DSWI_NinaJose.Models.Carrito>
+@{
+    ViewData["Title"] = "Tu Carrito";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-cart4 me-2"></i>@ViewData["Title"]</h2>
+        <button type="button" class="btn btn-outline-secondary" onclick="goBack()">
+            <i class="bi bi-arrow-left-circle me-1"></i>Volver
+        </button>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (!Model.Any())
+            {
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-cart-x" style="font-size: 4rem;"></i>
+                    <p class="mt-3 fs-5">Tu carrito está vacío.</p>
+                    <button type="button"
+                            class="btn btn-primary"
+                            onclick="goBack()">
+                        Seguir comprando
+                    </button>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Producto</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cart-body">
+                            @foreach (var item in Model)
+                            {
+                                <tr data-id="@item.ProductoId">
+                                    <td style="width: 80px;">
+                                        <img src="@item.ImagenUrl"
+                                             class="img-fluid rounded"
+                                             onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                                    </td>
+                                    <td>@item.Nombre</td>
+                                    <td class="text-end price-cell">S/ @item.Precio.ToString("F2")</td>
+                                    <td class="text-center">
+                                        <div class="input-group input-group-sm justify-content-center">
+                                            <input type="number"
+                                                   value="@item.Cantidad"
+                                                   min="1"
+                                                   class="form-control cart-qty-input"
+                                                   style="max-width: 80px;" />
+                                            <button type="button"
+                                                    class="btn btn-outline-secondary cart-update-btn"
+                                                    title="Actualizar cantidad">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="text-end subtotal-cell">
+                                        S/ @item.Subtotal.ToString("F2")
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger cart-remove-btn"
+                                                title="Eliminar del carrito">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="card-footer bg-white d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>Total:</strong>
+                    <span id="cart-total" class="fs-5">S/ @Model.Sum(i => i.Subtotal).ToString("F2")</span>
+                </div>
+                <div>
+                    <button class="btn btn-outline-secondary me-2" onclick="goBack()">
+                        Seguir comprando
+                    </button>
+                    <form asp-controller="Orden"
+                          asp-action="Checkout"
+                          method="post"
+                          class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success">
+                            Pagar ahora
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Volver al catálogo o atrás
+        function goBack() {
+                window.location.href = '@Url.Action("IndexProductos", "Producto")';      
+        }
+
+        // Actualiza la fila y el total
+        async function updateQuantity(row, newQty) {
+            const id = row.dataset.id;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const resp = await fetch('/Carrito/UpdateQuantity', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ id: +id, cantidad: +newQty })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                row.querySelector('.subtotal-cell').textContent = 'S/ ' + data.newSubtotal.toFixed(2);
+                document.getElementById('cart-total').textContent = 'S/ ' + data.newTotal.toFixed(2);
+            } else {
+                alert('Error al actualizar cantidad');
+            }
+        }
+
+        // Elimina la fila y actualiza el total
+        async function removeItem(row) {
+            const id = row.dataset.id;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const resp = await fetch('/Carrito/RemoveFromCart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ id: +id })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                row.remove();
+                document.getElementById('cart-total').textContent = 'S/ ' + data.newTotal.toFixed(2);
+                if (!document.querySelector('#cart-body tr')) {
+                    location.reload(); // vaciar carrito => recarga para mostrar estado vacío
+                }
+            } else {
+                alert('Error al eliminar producto');
+            }
+        }
+
+        // Delegación de eventos
+        document.addEventListener('click', function (e) {
+            const updateBtn = e.target.closest('.cart-update-btn');
+            const removeBtn = e.target.closest('.cart-remove-btn');
+            if (updateBtn) {
+                const row = updateBtn.closest('tr');
+                const qtyInput = row.querySelector('.cart-qty-input');
+                let qty = parseInt(qtyInput.value) || 1;
+                if (qty < 1) qty = 1;
+                qtyInput.value = qty;
+                updateQuantity(row, qty);
+            }
+            if (removeBtn) {
+                const row = removeBtn.closest('tr');
+                if (confirm('¿Eliminar este producto del carrito?')) {
+                    removeItem(row);
+                }
+            }
+        });
+    </script>
+}

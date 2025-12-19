@@ -1,0 +1,38 @@
+﻿@model Proy_DSWI_NinaJose.Models.Orden
+
+@{
+    ViewData["Title"] = $"Orden #{Model.IdOrden}";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    <h2>@ViewData["Title"]</h2>
+
+    <p><strong>Fecha:</strong> @Model.Fecha.ToString("f")</p>
+    <p><strong>Total:</strong> S/ @Model.Total.ToString("F2")</p>
+
+    <h5>Productos:</h5>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th class="text-center">Cantidad</th>
+                <th class="text-end">Precio unitario</th>
+                <th class="text-end">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var det in Model.OrdenDetalles)
+            {
+                <tr>
+                    <td>@det.Producto?.Nombre</td>
+                    <td class="text-center">@det.Cantidad</td>
+                    <td class="text-end">S/ @det.PrecioUnitario.ToString("F2")</td>
+                    <td class="text-end">
+                        S/ @(det.PrecioUnitario * det.Cantidad).ToString("F2")
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
