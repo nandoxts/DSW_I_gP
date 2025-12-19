@@ -1,4 +1,7 @@
-﻿USE BD_PROY_VENTA;
+﻿CREATE DATABASE BD_PROY_VENTA;
+GO 
+
+USE BD_PROY_VENTA;
 GO
 
 /* 1) Eliminar tablas existentes (en orden inverso a las FK) */
