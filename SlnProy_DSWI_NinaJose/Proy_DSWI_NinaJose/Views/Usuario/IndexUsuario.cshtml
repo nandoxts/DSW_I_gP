@@ -1,0 +1,128 @@
+@model IEnumerable<Proy_DSWI_NinaJose.Models.Usuario>
+
+@{
+    ViewData["Title"] = "Gestión de Usuarios";
+    Layout = "_Layout";
+}
+
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
+
+    .header-section h2 {
+        margin: 0;
+        color: #333;
+    }
+
+    .user-table {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        background-color: #667eea;
+        color: white;
+        border: none;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .badge-admin {
+        background-color: #667eea;
+    }
+
+    .badge-cliente {
+        background-color: #43e97b;
+    }
+
+    .action-buttons a,
+    .action-buttons form {
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .action-buttons form {
+        margin: 0;
+    }
+
+    .action-buttons .btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+</style>
+
+<div class="header-section">
+    <h2>👥 Gestión de Usuarios</h2>
+    <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+<div class="user-table">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="width: 10%">ID</th>
+                <th style="width: 25%">Nombre</th>
+                <th style="width: 30%">Email</th>
+                <th style="width: 15%">Rol</th>
+                <th style="width: 20%">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var usuario in Model)
+                {
+                    <tr>
+                        <td><strong>#@usuario.IdUsuario</strong></td>
+                        <td>@usuario.Nombre</td>
+                        <td>@usuario.Email</td>
+                        <td>
+                            @if (usuario.Rol == "Admin")
+                            {
+                                <span class="badge badge-admin">Administrador</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-cliente">Cliente</span>
+                            }
+                        </td>
+                        <td class="action-buttons">
+                            <a href="@Url.Action("DetailsUsuario", "Usuario", new { id = usuario.IdUsuario })" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            <a href="@Url.Action("EditUsuario", "Usuario", new { id = usuario.IdUsuario })" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <form action="@Url.Action("DeleteUsuario", "Usuario", new { id = usuario.IdUsuario })" method="post" style="display: inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este usuario?');">
+                                    <i class="bi bi-trash"></i> Eliminar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">No hay usuarios registrados.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

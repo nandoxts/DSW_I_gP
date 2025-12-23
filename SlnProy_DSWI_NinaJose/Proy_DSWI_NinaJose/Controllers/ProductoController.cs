@@ -6,6 +6,8 @@ using Proy_DSWI_NinaJose.Models;
 using Proy_DSWI_NinaJose.Models.ViewModels;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
+using X.PagedList.Extensions;
 
 namespace Proy_DSWI_NinaJose.Controllers
 {
@@ -16,11 +18,17 @@ namespace Proy_DSWI_NinaJose.Controllers
 
         // GET: /Producto/IndexProductos
         [AllowAnonymous]
-        public async Task<IActionResult> IndexProductos()
+        public async Task<IActionResult> IndexProductos(int? page)
         {
+            int pageSize = 6;
+            int pageNumber = page ?? 1;
+
             var productos = await _ctx.Productos
                 .Include(p => p.Categoria)
                 .ToListAsync();
+
+            // Paginación de todos los productos
+            var productosPaginados = productos.ToPagedList(pageNumber, pageSize);
 
             // Construir el ViewModel ProductoCat
             var model = new ProductoCat
@@ -28,7 +36,8 @@ namespace Proy_DSWI_NinaJose.Controllers
                 Destacados = productos.Take(3).ToList(),
                 ProductosPorCategoria = productos
                     .GroupBy(p => p.Categoria?.Nombre ?? "Sin categoría")
-                    .ToDictionary(g => g.Key, g => g.ToList())
+                    .ToDictionary(g => g.Key, g => g.ToList()),
+                ProductosPaginados = productosPaginados
             };
 
             // Forzamos la ruta absoluta a la carpeta plural

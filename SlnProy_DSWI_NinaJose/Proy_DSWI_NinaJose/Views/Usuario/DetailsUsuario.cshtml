@@ -1,0 +1,110 @@
+@model Proy_DSWI_NinaJose.Models.Usuario
+
+@{
+    ViewData["Title"] = $"Detalles de {Model.Nombre}";
+    Layout = "_Layout";
+}
+
+<style>
+    .details-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 30px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .detail-row {
+        display: flex;
+        margin-bottom: 20px;
+        align-items: center;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #667eea;
+        width: 150px;
+        min-width: 150px;
+    }
+
+    .detail-value {
+        color: #333;
+        flex: 1;
+    }
+
+    .badge {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+
+    .btn-group-custom {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+        justify-content: center;
+    }
+
+    .btn-group-custom .btn {
+        min-width: 120px;
+    }
+
+    .header-back {
+        margin-bottom: 30px;
+    }
+</style>
+
+<div class="header-back">
+    <a href="@Url.Action("IndexUsuario", "Usuario")" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver a la lista
+    </a>
+</div>
+
+<div class="details-card">
+    <h2 style="text-align: center; margin-bottom: 30px;">
+        <i class="bi bi-person-circle"></i> Detalles del Usuario
+    </h2>
+
+    <div class="detail-row">
+        <div class="detail-label">ID Usuario:</div>
+        <div class="detail-value">#@Model.IdUsuario</div>
+    </div>
+
+    <div class="detail-row">
+        <div class="detail-label">Nombre:</div>
+        <div class="detail-value">@Model.Nombre</div>
+    </div>
+
+    <div class="detail-row">
+        <div class="detail-label">Email:</div>
+        <div class="detail-value">
+            <a href="mailto:@Model.Email">@Model.Email</a>
+        </div>
+    </div>
+
+    <div class="detail-row">
+        <div class="detail-label">Rol:</div>
+        <div class="detail-value">
+            @if (Model.Rol == "Admin")
+            {
+                <span class="badge" style="background-color: #667eea; color: white;">Administrador</span>
+            }
+            else
+            {
+                <span class="badge" style="background-color: #43e97b; color: white;">Cliente</span>
+            }
+        </div>
+    </div>
+
+    <div class="btn-group-custom">
+        <a href="@Url.Action("EditUsuario", "Usuario", new { id = Model.IdUsuario })" class="btn btn-primary">
+            <i class="bi bi-pencil"></i> Editar
+        </a>
+        <form action="@Url.Action("DeleteUsuario", "Usuario", new { id = Model.IdUsuario })" method="post" style="margin: 0;">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este usuario?');">
+                <i class="bi bi-trash"></i> Eliminar
+            </button>
+        </form>
+    </div>
+</div>

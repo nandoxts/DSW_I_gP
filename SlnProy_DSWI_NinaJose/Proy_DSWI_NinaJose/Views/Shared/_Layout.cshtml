@@ -75,16 +75,32 @@
                             </button>
                         </li>
 
-                        @* Órdenes/Mis órdenes *@
+                        @* Panel de Admin *@
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-controller="Orden" asp-action="AllOrders">
-                                    <i class="bi bi-card-list me-1"></i> Órdenes
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-shield-lock me-1"></i> Admin
                                 </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                        <i class="bi bi-speedometer2"></i> Dashboard
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Usuario" asp-action="IndexUsuario">
+                                        <i class="bi bi-people"></i> Gestionar Usuarios
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Orden" asp-action="IndexOrdenesAdmin">
+                                        <i class="bi bi-receipt"></i> Todas las Órdenes
+                                    </a></li>
+                                    <li><a class="dropdown-item" asp-controller="Producto" asp-action="IndexProductos">
+                                        <i class="bi bi-box"></i> Productos
+                                    </a></li>
+                                </ul>
                             </li>
                         }
-                        else
+
+                        @* Órdenes/Mis órdenes *@
+                        @if (!User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Orden" asp-action="MyOrders">

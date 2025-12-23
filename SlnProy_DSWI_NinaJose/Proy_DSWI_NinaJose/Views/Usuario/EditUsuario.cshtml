@@ -1,0 +1,122 @@
+@model Proy_DSWI_NinaJose.Models.Usuario
+
+@{
+    ViewData["Title"] = $"Editar {Model.Nombre}";
+    Layout = "_Layout";
+}
+
+<style>
+    .edit-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 30px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-group-custom {
+        display: flex;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+    .btn-group-custom .btn {
+        flex: 1;
+    }
+
+    .header-back {
+        margin-bottom: 30px;
+    }
+
+    .alert {
+        border-radius: 4px;
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+
+    .role-info {
+        background-color: #f0f4ff;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        color: #555;
+    }
+</style>
+
+<div class="header-back">
+    <a href="@Url.Action("IndexUsuario", "Usuario")" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver a la lista
+    </a>
+</div>
+
+<div class="edit-card">
+    <h2 style="text-align: center; margin-bottom: 30px;">
+        <i class="bi bi-pencil-square"></i> Editar Usuario
+    </h2>
+
+    <form method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="IdUsuario" />
+
+        <div class="form-group">
+            <label asp-for="Nombre">Nombre Completo</label>
+            <input type="text" asp-for="Nombre" class="form-control" readonly />
+            <small class="form-text text-muted">El nombre no puede ser modificado</small>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email">Email</label>
+            <input type="email" asp-for="Email" class="form-control" readonly />
+            <small class="form-text text-muted">El email no puede ser modificado</small>
+        </div>
+
+        <div class="role-info">
+            ⚠️ <strong>Nota:</strong> Asigna el rol de "Administrador" solo a usuarios de confianza. Los administradores tienen acceso completo al panel de control.
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Rol">Rol de Usuario</label>
+            <select asp-for="Rol" class="form-control">
+                <option value="Cliente">Cliente</option>
+                <option value="Admin">Administrador</option>
+            </select>
+        </div>
+
+        <div class="btn-group-custom">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> Guardar Cambios
+            </button>
+            <a href="@Url.Action("IndexUsuario", "Usuario")" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>

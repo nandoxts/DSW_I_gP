@@ -101,6 +101,60 @@
     </div>
 }
 
+<!-- SECCIÓN PAGINADA DE TODOS LOS PRODUCTOS -->
+<div class="mt-5">
+    <h3 class="section-title">Todos los Productos</h3>
+    @if (Model.ProductosPaginados != null && Model.ProductosPaginados.Any())
+    {
+        <div class="catalog-grid">
+            @foreach (var p in Model.ProductosPaginados)
+            {
+                <div class="catalog-card">
+                    <img src="@p.ImagenUrl"
+                         alt="@p.Nombre"
+                         onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                    <div class="card-body d-flex flex-column">
+                        <h5>@p.Nombre</h5>
+                        <p class="text-truncate">@p.Descripcion</p>
+                        <p class="price">S/ @p.Precio.ToString("F2")</p>
+                        <div class="mt-auto d-flex gap-2">
+                            <button class="btn btn-outline-primary flex-fill"
+                                    onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                <button class="btn btn-primary flex-fill" onclick="showLoginModal()">
+                                    <i class="bi bi-cart-plus-fill"></i>
+                                </button>
+                            }
+                            else if (User.IsInRole("Cliente"))
+                            {
+                                <button class="btn btn-primary flex-fill index-add-btn"
+                                        data-id="@p.IdProducto">
+                                    <i class="bi bi-cart-plus-fill"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Paginación -->
+        <div class="d-flex justify-content-center mt-4">
+            @Html.PagedListPager(Model.ProductosPaginados, page => Url.Action("IndexProductos", new { page }), 
+                new X.PagedList.Mvc.Common.PagedListRenderOptions
+                {
+                    LiElementClasses = new string[] { "page-item" },
+                    PageClasses = new string[] { "page-link" },
+                    UlElementClasses = new string[] { "pagination" }
+                })
+        </div>
+    }
+</div>
+
 <!-- Modal de detalles -->
 <div class="modal fade" id="detallesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">

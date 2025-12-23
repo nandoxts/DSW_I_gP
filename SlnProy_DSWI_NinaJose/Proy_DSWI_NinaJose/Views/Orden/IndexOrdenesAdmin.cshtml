@@ -4,47 +4,195 @@
     Layout = "_Layout";
 }
 
-<h2>@ViewData["Title"]</h2>
+<style>
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th># Orden</th>
-            <th>Cliente</th>
-            <th>Email</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var o in Model)
-        {
-            <tr>
-                <td>@o.IdOrden</td>
-                <td>@o.Usuario.Nombre</td>
-                <td>@o.Usuario.Email</td>
-                <td>@o.Fecha.ToString("g")</td>
-                <td>S/ @o.Total.ToString("F2")</td>
-                <td>@o.Estado</td>
-                <td>
-                    @if (o.Estado != "Confirmado")
-                    {
-                        <form asp-action="ConfirmOrder" asp-route-id="@o.IdOrden"
-                              method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-success">
-                                Confirmar
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Confirmado</span>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    .header-section h2 {
+        margin: 0;
+        color: #333;
+    }
+
+    .orders-table {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table th {
+        background-color: #667eea;
+        color: white;
+        border: none;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .status-completada {
+        background-color: #43e97b;
+        color: white;
+    }
+
+    .status-pendiente {
+        background-color: #fa7921;
+        color: white;
+    }
+
+    .status-cancelada {
+        background-color: #ff6b6b;
+        color: white;
+    }
+
+    .action-buttons a {
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+    .action-buttons .btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .stats-row {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .stat-badge {
+        background: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        font-weight: 600;
+        color: #333;
+    }
+
+    .stat-badge span {
+        color: #667eea;
+        font-size: 1.2rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        color: #ddd;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="header-section">
+    <h2>📋 Todas las Órdenes</h2>
+    <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Volver al Dashboard
+    </a>
+</div>
+
+<div class="stats-row">
+    <div class="stat-badge">
+        Total: <span>@Model.Count</span>
+    </div>
+    <div class="stat-badge">
+        Completadas: <span>@Model.Count(o => o.Estado == "Completada")</span>
+    </div>
+    <div class="stat-badge">
+        Pendientes: <span>@Model.Count(o => o.Estado == "Pendiente")</span>
+    </div>
+    <div class="stat-badge">
+        Ingresos: <span>S/ @Model.Sum(o => o.Total).ToString("F2")</span>
+    </div>
+</div>
+
+<div class="orders-table">
+    @if (Model != null && Model.Any())
+    {
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="width: 10%">ID Orden</th>
+                    <th style="width: 20%">Cliente</th>
+                    <th style="width: 15%">Email</th>
+                    <th style="width: 12%">Fecha</th>
+                    <th style="width: 12%">Total</th>
+                    <th style="width: 12%">Estado</th>
+                    <th style="width: 19%">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var orden in Model.OrderByDescending(o => o.Fecha))
+                {
+                    <tr>
+                        <td><strong>#@orden.IdOrden</strong></td>
+                        <td>@orden.Usuario?.Nombre ?? "No especificado"</td>
+                        <td>@orden.Usuario?.Email ?? "-"</td>
+                        <td>@orden.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>
+                            <strong>S/ @orden.Total.ToString("F2")</strong>
+                        </td>
+                        <td>
+                            @{
+                                var statusClass = orden.Estado switch
+                                {
+                                    "Completada" => "status-completada",
+                                    "Confirmado" => "status-completada",
+                                    "Pendiente" => "status-pendiente",
+                                    "Cancelada" => "status-cancelada",
+                                    _ => "status-completada"
+                                };
+                            }
+                            <span class="status-badge @statusClass">@orden.Estado</span>
+                        </td>
+                        <td class="action-buttons">
+                            <a href="@Url.Action("DetailsMyOrder", "Orden", new { id = orden.IdOrden })" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> Ver
+                            </a>
+                            @if (orden.Estado != "Confirmado")
+                            {
+                                <form asp-action="ConfirmOrder" asp-route-id="@orden.IdOrden"
+                                      method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-success">
+                                        <i class="bi bi-check"></i> Confirmar
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h4>No hay órdenes registradas</h4>
+            <p>Las órdenes aparecerán aquí cuando los clientes realicen compras.</p>
+        </div>
+    }
+</div>
