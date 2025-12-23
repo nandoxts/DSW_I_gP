@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 1) Configura EF Core
 builder.Services.AddDbContext<BDPROYVENTASContex>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("cn1")));
 
 // 2) Autenticación por cookie
 builder.Services
@@ -26,6 +26,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+
 // 4) MVC
 builder.Services.AddControllersWithViews();
 
@@ -41,9 +42,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseSession();
 
 // Ruta por defecto apunta a ProductoController.IndexProductos
 app.MapControllerRoute(

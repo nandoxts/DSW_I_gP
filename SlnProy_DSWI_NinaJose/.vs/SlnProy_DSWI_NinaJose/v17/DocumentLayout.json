@@ -1,10 +1,18 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Admin\\Downloads\\PROYECTO\\SlnProy_DSWI_NinaJose\\",
+  "WorkspaceRootPath": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|c:\\users\\admin\\downloads\\proyecto\\slnproy_dswi_ninajose\\proy_dswi_ninajose\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
-      "RelativeMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|solutionrelative:proy_dswi_ninajose\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+      "AbsoluteMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|c:\\users\\leonardo\\onedrive\\desktop\\nueva carpeta\\nueva carpeta\\dsw_i_gp-main\\slnproy_dswi_ninajose\\proy_dswi_ninajose\\controllers\\ordencontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|solutionrelative:proy_dswi_ninajose\\controllers\\ordencontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|c:\\users\\leonardo\\onedrive\\desktop\\nueva carpeta\\nueva carpeta\\dsw_i_gp-main\\slnproy_dswi_ninajose\\proy_dswi_ninajose\\wwwroot\\controllers\\ordencontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|solutionrelative:proy_dswi_ninajose\\wwwroot\\controllers\\ordencontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|c:\\users\\leonardo\\onedrive\\desktop\\nueva carpeta\\nueva carpeta\\dsw_i_gp-main\\slnproy_dswi_ninajose\\proy_dswi_ninajose\\views\\carrito\\indexcarrito.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{F0095CF7-4786-412B-8121-C3389E4E746E}|Proy_DSWI_NinaJose\\Proy_DSWI_NinaJose.csproj|solutionrelative:proy_dswi_ninajose\\views\\carrito\\indexcarrito.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,24 +22,44 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 0,
           "Children": [
-            {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "appsettings.json",
-              "DocumentMoniker": "C:\\Users\\Admin\\Downloads\\PROYECTO\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\appsettings.json",
-              "RelativeDocumentMoniker": "Proy_DSWI_NinaJose\\appsettings.json",
-              "ToolTip": "C:\\Users\\Admin\\Downloads\\PROYECTO\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\appsettings.json",
-              "RelativeToolTip": "Proy_DSWI_NinaJose\\appsettings.json",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-12-19T01:49:37.62Z",
+              "Title": "OrdenController.cs",
+              "DocumentMoniker": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\Controllers\\OrdenController.cs",
+              "RelativeDocumentMoniker": "Proy_DSWI_NinaJose\\Controllers\\OrdenController.cs",
+              "ToolTip": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\Controllers\\OrdenController.cs",
+              "RelativeToolTip": "Proy_DSWI_NinaJose\\Controllers\\OrdenController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-21T21:06:45.655Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "IndexCarrito.cshtml",
+              "DocumentMoniker": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\Views\\Carrito\\IndexCarrito.cshtml",
+              "RelativeDocumentMoniker": "Proy_DSWI_NinaJose\\Views\\Carrito\\IndexCarrito.cshtml",
+              "ToolTip": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\Views\\Carrito\\IndexCarrito.cshtml",
+              "RelativeToolTip": "Proy_DSWI_NinaJose\\Views\\Carrito\\IndexCarrito.cshtml",
+              "ViewState": "AgIAAJUAAAAAAAAAAAAswOAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-12-21T20:14:50.302Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "OrdenController.cs",
+              "DocumentMoniker": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\wwwroot\\Controllers\\OrdenController.cs",
+              "RelativeDocumentMoniker": "Proy_DSWI_NinaJose\\wwwroot\\Controllers\\OrdenController.cs",
+              "ToolTip": "C:\\Users\\Leonardo\\OneDrive\\Desktop\\Nueva carpeta\\Nueva carpeta\\DSW_I_gP-main\\SlnProy_DSWI_NinaJose\\Proy_DSWI_NinaJose\\wwwroot\\Controllers\\OrdenController.cs",
+              "RelativeToolTip": "Proy_DSWI_NinaJose\\wwwroot\\Controllers\\OrdenController.cs",
+              "ViewState": "AgIAAFcAAAAAAAAAAAAAAGoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-21T18:24:24.659Z"
             }
           ]
         }

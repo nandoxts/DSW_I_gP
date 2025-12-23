@@ -7,7 +7,7 @@ namespace Proy_DSWI_NinaJose.Models
     public class OrdenDetalle
     {
         [Key]
-        public int IdDetalle { get; set; }
+        public int IdOrdenDetalle { get; set; }
 
         public int IdOrden { get; set; }
         public Orden? Orden { get; set; }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Proy_DSWI_NinaJose.Extensions;   // <-- para GetObject<>, SetObject<>
 using Proy_DSWI_NinaJose.Models;
@@ -32,13 +33,14 @@ namespace Proy_DSWI_NinaJose.Controllers
             }
             return View("Checkout", cart);
         }
-
+       
         // POST: /Orden/CheckoutPost
         // Procesa el pago: crea la Orden y los OrdenDetalles, limpia la sesión
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckoutPost()
         {
+
             var cart = HttpContext.Session.GetObject<List<Carrito>>(SessionKey);
             if (cart == null || !cart.Any())
                 return RedirectToAction("IndexCarrito", "Carrito");
@@ -73,6 +75,26 @@ namespace Proy_DSWI_NinaJose.Controllers
 
             // 4) Redirigir a la página de confirmación
             return RedirectToAction(nameof(Confirmation), new { id = orden.IdOrden });
+        }
+
+
+
+        [Authorize(Roles = "Cliente")]
+        public async Task<IActionResult> MyOrders()
+        {
+            // Obtenemos el Id del usuario logueado
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            // Filtramos sólo sus órdenes
+            var ordenes = await _ctx.Ordenes
+                .Where(o => o.IdUsuario == userId)
+                .Include(o => o.OrdenDetalles)
+                    .ThenInclude(d => d.Producto)
+                .OrderByDescending(o => o.Fecha)
+                .ToListAsync();
+
+            // Usa la misma vista Index.cshtml
+            return View("IndexOrdenes", ordenes);
         }
 
         // GET: /Orden/Confirmation/5

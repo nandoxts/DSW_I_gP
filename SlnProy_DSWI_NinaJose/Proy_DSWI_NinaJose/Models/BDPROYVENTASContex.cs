@@ -100,8 +100,8 @@ namespace Proy_DSWI_NinaJose.Models
             // ─── OrdenDetalle ───────────────────────────────────────
             modelBuilder.Entity<OrdenDetalle>(entity =>
             {
-                entity.HasKey(e => e.IdDetalle).HasName("PK_OrdenDetalles");
-                entity.Property(e => e.IdDetalle).ValueGeneratedOnAdd();
+                entity.HasKey(e => e.IdOrdenDetalle).HasName("PK_OrdenDetalles");
+                entity.Property(e => e.IdOrdenDetalle).ValueGeneratedOnAdd();
                 entity.Property(e => e.Cantidad)
                       .IsRequired();
                 entity.Property(e => e.PrecioUnitario)

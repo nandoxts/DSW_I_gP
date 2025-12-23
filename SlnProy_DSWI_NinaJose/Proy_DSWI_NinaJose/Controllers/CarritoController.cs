@@ -25,7 +25,7 @@ namespace Proy_DSWI_NinaJose.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> AddToCart(int id, int cantidad)
         {
             var prod = await _ctx.Productos.FindAsync(id);
