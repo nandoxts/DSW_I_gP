@@ -5,6 +5,9 @@
 @{
     var sessionCart = Context.Session.GetObject<List<Carrito>>("Carrito") ?? new List<Carrito>();
     var initialCount = sessionCart.Sum(c => c.Cantidad);
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+    var userName = User?.Identity?.Name ?? string.Empty;
+    var userEmail = User?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? string.Empty;
 }
 
 <!DOCTYPE html>
@@ -42,6 +45,32 @@
                             <span id="cartCountBadge" class="badge bg-primary ms-2" style="display:@(initialCount>0?"inline-block":"none")">@initialCount</span>
                         </a>
                     </li>
+                    @if (isAuth)
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width:34px;height:34px;font-weight:600;">@((!string.IsNullOrEmpty(userName) && userName.Length>0)? userName.Substring(0,1).ToUpper() : "U")</span>
+                                <span class="d-none d-md-inline">@userName</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileMenu">
+                                <li class="dropdown-item-text"><strong>@userName</strong><br /><small class="text-muted">@userEmail</small></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="javascript:void(0)" onclick="showProfile()">Perfil</a></li>
+                                <li>
+                                    <form method="post" asp-controller="Account" asp-action="Logout" class="m-0">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item">Cerrar sesión</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="javascript:void(0)" onclick="showLoginModal()">Ingresar</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>
@@ -119,6 +148,8 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function closeAllModals() {
