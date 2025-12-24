@@ -6,10 +6,10 @@
         <div class="row g-0">
             <!-- Imagen -->
             <div class="col-md-5 text-center p-3">
-                <img src="@Model.ImagenUrl"
+                 <img src="@Model.ImagenUrl"
                      class="img-fluid rounded"
                      alt="@Model.Nombre"
-                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                     onerror="this.onerror=null;this.src='/images/no-image.svg';" />
             </div>
 
             <!-- Detalles -->
@@ -117,16 +117,15 @@
                     if (!res.ok) throw new Error('Error servidor');
                     return res.json();
                 })
-                .then(json => {
+                    .then(json => {
                     // actualizar badge si lo tienes
                     document.getElementById('cartCountBadge')?.classList.remove('d-none');
-                    document.getElementById('cartCountBadge').textContent = json.newCount;
+                    var badge = document.getElementById('cartCountBadge'); if (badge) badge.textContent = json.newCount;
                     // cerrar modal
                     bootstrap.Modal.getInstance(document.getElementById('detallesModal')).hide();
-                    // alerta breve
+                    // alerta breve (si existe)
                     var a = document.getElementById('addCartAlert');
-                    a.classList.remove('d-none');
-                    setTimeout(() => a.classList.add('d-none'), 1500);
+                    if (a) { a.classList.remove('d-none'); setTimeout(() => a.classList.add('d-none'), 1500); }
                 })
                 .catch(err => alert(err.message));
         });

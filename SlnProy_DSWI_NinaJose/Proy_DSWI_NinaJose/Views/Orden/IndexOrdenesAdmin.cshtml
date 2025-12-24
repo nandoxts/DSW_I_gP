@@ -107,7 +107,7 @@
 </style>
 
 <div class="header-section">
-    <h2>📋 Todas las Órdenes</h2>
+    <h2> Todas las Órdenes</h2>
     <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">
         <i class="bi bi-arrow-left"></i> Volver al Dashboard
     </a>
@@ -118,7 +118,7 @@
         Total: <span>@Model.Count</span>
     </div>
     <div class="stat-badge">
-        Completadas: <span>@Model.Count(o => o.Estado == "Completada")</span>
+        Completadas: <span>@Model.Count(o => o.Estado == "Completada" || o.Estado == "Confirmado")</span>
     </div>
     <div class="stat-badge">
         Pendientes: <span>@Model.Count(o => o.Estado == "Pendiente")</span>
@@ -148,8 +148,8 @@
                 {
                     <tr>
                         <td><strong>#@orden.IdOrden</strong></td>
-                        <td>@orden.Usuario?.Nombre ?? "No especificado"</td>
-                        <td>@orden.Usuario?.Email ?? "-"</td>
+                        <td>@(orden.Usuario?.Nombre ?? "No especificado")</td>
+                        <td>@(orden.Usuario?.Email ?? "-")</td>
                         <td>@orden.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
                         <td>
                             <strong>S/ @orden.Total.ToString("F2")</strong>
@@ -171,7 +171,7 @@
                             <a href="@Url.Action("DetailsMyOrder", "Orden", new { id = orden.IdOrden })" class="btn btn-sm btn-info">
                                 <i class="bi bi-eye"></i> Ver
                             </a>
-                            @if (orden.Estado != "Confirmado")
+                            @if (orden.Estado == "Pendiente")
                             {
                                 <form asp-action="ConfirmOrder" asp-route-id="@orden.IdOrden"
                                       method="post" class="d-inline">

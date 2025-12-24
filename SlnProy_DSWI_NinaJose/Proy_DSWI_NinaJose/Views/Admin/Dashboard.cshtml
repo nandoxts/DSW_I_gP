@@ -125,7 +125,7 @@
 </style>
 
 <div class="admin-header">
-    <h1>📊 Panel de Administración</h1>
+    <h1>Panel de Administración</h1>
     <p style="margin: 10px 0 0 0;">Bienvenido, @User.Identity?.Name</p>
 </div>
 
@@ -143,8 +143,7 @@
         <i class="bi bi-receipt"></i>
         <div>Todas las Órdenes</div>
     </a>
-    <a href="@Url.Action("IndexProductos", "Producto")" class="quick-link">
-        <i class="bi bi-plus-circle"></i>
+    <a href="@Url.Action("CreateProducto", "Producto")" class="quick-link">
         <div>Nuevo Producto</div>
     </a>
 </div>
@@ -182,7 +181,7 @@
 </div>
 
 <!-- Últimas órdenes -->
-<div class="section-title">📦 Últimas Órdenes</div>
+<div class="section-title">Últimas Órdenes</div>
 @if (ViewBag.UltimasOrdenes != null && ViewBag.UltimasOrdenes.Count > 0)
 {
     <div class="table-responsive">
@@ -223,7 +222,7 @@ else
 }
 
 <!-- Productos más vendidos -->
-<div class="section-title">⭐ Productos Más Vendidos</div>
+<div class="section-title">Productos Más Vendidos</div>
 @if (ViewBag.ProductosPopulares != null && ViewBag.ProductosPopulares.Count > 0)
 {
     <div class="table-responsive">

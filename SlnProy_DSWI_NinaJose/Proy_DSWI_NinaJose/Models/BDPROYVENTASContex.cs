@@ -36,7 +36,8 @@ namespace Proy_DSWI_NinaJose.Models
                 entity.Property(e => e.Stock);
                 entity.Property(e => e.ImagenUrl)
                       .HasMaxLength(255)
-                      .IsUnicode(false);
+                      .IsUnicode(false)
+                      .ValueGeneratedOnAddOrUpdate();
 
                 entity.HasOne(e => e.Categoria)
                       .WithMany(c => c.Productos)

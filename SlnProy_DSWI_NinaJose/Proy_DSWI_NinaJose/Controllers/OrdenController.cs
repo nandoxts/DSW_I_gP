@@ -13,7 +13,7 @@ namespace Proy_DSWI_NinaJose.Controllers
 {
     public class OrdenController : Controller
     {
-        private const string SessionKey = "Cart";
+        private const string SessionKey = "Carrito";
         private readonly BDPROYVENTASContex _ctx;
 
         public OrdenController(BDPROYVENTASContex ctx)
@@ -95,6 +95,55 @@ namespace Proy_DSWI_NinaJose.Controllers
 
             // Usa la misma vista Index.cshtml
             return View("IndexOrdenes", ordenes);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> IndexOrdenesAdmin()
+        {
+            var ordenes = await _ctx.Ordenes
+                .Include(o => o.Usuario)
+                .Include(o => o.OrdenDetalles).ThenInclude(d => d.Producto)
+                .OrderByDescending(o => o.Fecha)
+                .ToListAsync();
+
+            return View("IndexOrdenesAdmin", ordenes);
+        }
+
+        // GET: /Orden/DetailsMyOrder/5
+        // Muestra los detalles de una orden para el propietario o para Admin
+        [Authorize]
+        public async Task<IActionResult> DetailsMyOrder(int id)
+        {
+            var orden = await _ctx.Ordenes
+                .Include(o => o.OrdenDetalles).ThenInclude(d => d.Producto)
+                .Include(o => o.Usuario)
+                .FirstOrDefaultAsync(o => o.IdOrden == id);
+
+            if (orden == null)
+                return NotFound();
+
+            // Si no es Admin, asegurarse que el usuario logueado sea el propietario
+            if (!User.IsInRole("Admin"))
+            {
+                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                if (orden.IdUsuario != userId)
+                    return Forbid();
+            }
+
+            return View("DetailsMyOrder", orden);
+        }
+
+        // POST: /Orden/ConfirmOrder/5
+        [HttpPost, Authorize(Roles = "Admin"), ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmOrder(int id)
+        {
+            var orden = await _ctx.Ordenes.FindAsync(id);
+            if (orden == null) return NotFound();
+
+            orden.Estado = "Completada";
+            await _ctx.SaveChangesAsync();
+
+            return RedirectToAction(nameof(IndexOrdenesAdmin));
         }
 
         // GET: /Orden/Confirmation/5

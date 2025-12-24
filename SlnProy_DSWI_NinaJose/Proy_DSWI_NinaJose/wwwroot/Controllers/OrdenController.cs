@@ -124,7 +124,7 @@ namespace Proy_DSWI_NinaJose.Controllers
             var orden = await _ctx.Ordenes.FindAsync(id);
             if (orden == null) return NotFound();
 
-            orden.Estado = "Confirmado";
+            orden.Estado = "Completada";
             await _ctx.SaveChangesAsync();
 
             return RedirectToAction(nameof(AllOrders));

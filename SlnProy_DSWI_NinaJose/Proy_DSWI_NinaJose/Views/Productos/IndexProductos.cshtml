@@ -21,9 +21,9 @@
         @foreach (var p in Model.Destacados)
         {
             <div class="catalog-card">
-                <img src="@p.ImagenUrl"
+                 <img src="@p.ImagenUrl"
                      alt="@p.Nombre"
-                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                     onerror="this.onerror=null;this.src='/images/no-image.svg';" />
                 <div class="card-body d-flex flex-column">
                     <h5>@p.Nombre</h5>
                     <p class="text-truncate">@p.Descripcion</p>
@@ -66,9 +66,9 @@
         @foreach (var p in grp.Value)
         {
             <div class="catalog-card">
-                <img src="@p.ImagenUrl"
+                 <img src="@p.ImagenUrl"
                      alt="@p.Nombre"
-                     onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                     onerror="this.onerror=null;this.src='/images/no-image.svg';" />
                 <div class="card-body d-flex flex-column">
                     <h5>@p.Nombre</h5>
                     <p class="text-truncate">@p.Descripcion</p>
@@ -111,8 +111,8 @@
             {
                 <div class="catalog-card">
                     <img src="@p.ImagenUrl"
-                         alt="@p.Nombre"
-                         onerror="this.onerror=null;this.src='/images/no-image.png';" />
+                        alt="@p.Nombre"
+                        onerror="this.onerror=null;this.src='/images/no-image.svg';" />
                     <div class="card-body d-flex flex-column">
                         <h5>@p.Nombre</h5>
                         <p class="text-truncate">@p.Descripcion</p>
@@ -144,13 +144,16 @@
 
         <!-- Paginación -->
         <div class="d-flex justify-content-center mt-4">
-            @Html.PagedListPager(Model.ProductosPaginados, page => Url.Action("IndexProductos", new { page }), 
-                new X.PagedList.Mvc.Common.PagedListRenderOptions
+            @Html.PagedListPager(
+                Model.ProductosPaginados,
+                page => Url.Action("IndexProductos", new { page }),
+                new PagedListRenderOptions
                 {
-                    LiElementClasses = new string[] { "page-item" },
-                    PageClasses = new string[] { "page-link" },
-                    UlElementClasses = new string[] { "pagination" }
-                })
+                    LiElementClasses = new[] { "page-item" },
+                    PageClasses = new[] { "page-link" },
+                    UlElementClasses = new[] { "pagination" }
+                }
+            )
         </div>
     }
 </div>
@@ -174,6 +177,7 @@
         // Muestra la alerta verde con el mensaje que recibas
         function flashAlert(msg) {
             var alertEl = document.getElementById('addCartAlert');
+            if (!alertEl) return; // evita errores si el layout no incluye el elemento
             alertEl.textContent = msg;
             alertEl.classList.remove('d-none');
             setTimeout(function () {
