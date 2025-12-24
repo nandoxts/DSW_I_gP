@@ -1,6 +1,125 @@
 # Proyecto DSWI - Sistema de Ventas
 
 Sistema de gestión de tienda en línea desarrollado en ASP.NET Core 8.0 con Entity Framework Core.
+## Descripción
+
+Aplicación web para la venta de productos en línea con funcionalidades de:
+## Tecnologías Utilizadas
+
+- ASP.NET Core 8.0
+## Dependencias del Proyecto
+
+### NuGet Packages:
+## Requisitos Previos
+
+- .NET 8.0 SDK instalado
+## Configuración de Base de Datos
+
+1. Abre SQL Server Management Studio
+## Instalación y Ejecución
+
+1. Navega al directorio del proyecto:
+2. Restaura las dependencias:
+```bash
+dotnet restore
+```
+5. Inicia la aplicación:
+```bash
+dotnet run
+```
+## Estructura del Proyecto
+
+```
+SlnProy_DSWI_NinaJose/
+├── Controllers/
+│   ├── AccountController.cs          - Autenticación y registro
+│   ├── CarritoController.cs          - Gestión del carrito de compras
+│   ├── CategoriaController.cs        - Gestión de categorías
+│   ├── HomeController.cs             - Página de inicio
+│   ├── OrdenController.cs            - Gestión de órdenes
+│   ├── ProductoController.cs         - Gestión de productos
+│   ├── ProfileController.cs          - Perfil de usuario
+│   └── UsuarioController.cs          - Gestión de usuarios
+├── Models/
+│   ├── BDPROYVENTASContex.cs        - DbContext
+│   ├── Carrito.cs
+│   ├── CarItem.cs
+│   ├── Categoria.cs
+│   ├── Orden.cs
+│   ├── OrdenDetalle.cs
+│   ├── Producto.cs
+│   ├── Usuario.cs
+│   └── ViewModels/
+│       ├── Login.cs
+│       ├── LoginViewModel.cs
+│       ├── Register.cs
+│       ├── RegisterViewModel.cs
+│       ├── ProductoCat.cs              - ViewModel para catálogo de productos
+│       ├── OrdenConfirmation.cs
+│       └── OrdenItem.cs
+├── Views/
+│   ├── Account/                      - Vistas de autenticación
+│   ├── Carrito/                      - Vistas del carrito
+│   ├── Home/                         - Vistas de inicio
+│   ├── Orden/                        - Vistas de órdenes
+│   ├── Productos/                    - Vistas de productos
+│   ├── Profile/                      - Vistas de perfil
+│   └── Shared/                       - Vistas compartidas
+├── wwwroot/                          - Archivos estáticos
+│   ├── css/
+│   ├── js/
+│   └── lib/
+├── appsettings.json                  - Configuración de la aplicación
+└── Program.cs                        - Configuración de startup
+```
+## Características Principales
+
+### Autenticación y Autorización
+- Sistema de login/registro con cookies
+- Validación de credenciales
+- Sesión de usuario
+### Gestión de Productos
+
+- Catálogo de productos organizado por categorías
+- Página de inicio con productos destacados
+- Visualización de detalles del producto
+- Administración CRUD de productos (solo Admin)
+- ViewModel ProductoCat para separación de responsabilidades en la presentación
+
+### Carrito de Compras
+- Carrito basado en sesiones
+- Agregar/eliminar productos
+- Actualizar cantidades
+### Órdenes de Compra
+
+- Crear nuevas órdenes
+- Historial de órdenes del usuario
+- Confirmación de compra
+### Perfil de Usuario
+
+- Visualización de información personal
+- Actualización de datos
+## Variables de Entorno
+
+La aplicación utiliza las siguientes variables de conexión en appsettings.json:
+- DefaultConnection: Cadena de conexión a SQL Server
+
+## Notas de Desarrollo
+- El proyecto utiliza Nullable Reference Types (C# 11+)
+- Las sesiones se almacenan en memoria
+- La autenticación se basa en cookies HTTP-only
+- ViewModels utilizados para separación de responsabilidades en las vistas
+- Uso de LINQ para consultas a base de datos con Entity Framework Core
+- Incluye validación de modelos con atributos de datos
+## Autores
+
+Proyecto desarrollado por Nina y Jose para el curso DSWI.
+## Licencia
+
+Este proyecto es de uso educativo.
+# Proyecto DSWI - Sistema de Ventas
+
+Sistema de gestión de tienda en línea desarrollado en ASP.NET Core 8.0 con Entity Framework Core.
 
 ## Descripción
 
