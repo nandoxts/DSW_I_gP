@@ -1,55 +1,354 @@
 ﻿@model Proy_DSWI_NinaJose.Models.Orden
+
 @{
     ViewData["Title"] = "Orden Procesada";
     Layout = "_Layout";
 }
 
-<div class="container py-5">
-    <div class="alert alert-success">
-        <h4 class="alert-heading">
-            Orden #@Model.IdOrden procesada con éxito
-        </h4>
-        <p>Estimado cliente, su orden fue procesada.</p>
-        <ul>
-            <li><strong>Nombre:</strong> @Model.Usuario.Nombre</li>
-            <li><strong>Email:</strong> @Model.Usuario.Email</li>
-        </ul>
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-light: #eef2ff;
 
-        <h5>Productos:</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Producto</th>
-                    <th class="text-center">Cantidad</th>
-                    <th class="text-end">Precio unitario</th>
-                    <th class="text-end">Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var d in Model.OrdenDetalles)
-                {
-                    <tr>
-                        <td>@d.Producto.Nombre</td>
-                        <td class="text-center">@d.Cantidad</td>
-                        <td class="text-end">S/ @d.PrecioUnitario.ToString("F2")</td>
-                        <td class="text-end">S/ @(d.Cantidad * d.PrecioUnitario)</td>
-                    </tr>
-                }
-            </tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="3" class="text-end">Monto total:</th>
-                    <th class="text-end">S/ @Model.Total.ToString("F2")</th>
-                </tr>
-            </tfoot>
-        </table>
+        --success: #10b981;
+        --success-light: #ecfdf5;
 
-        <hr />
-        <p>¡Gracias por su compra!</p>
-        <a asp-controller="Producto"
-           asp-action="IndexProductos"
-           class="btn btn-primary">
-            Volver al catálogo
-        </a>
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-900: #111827;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+        --radius: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+    }
+
+    .order-page {
+        padding: 2.75rem 0;
+    }
+
+    .order-card {
+        background: #fff;
+        border: 1px solid var(--gray-100);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+    }
+
+    .order-hero {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1.5rem 1.5rem 1.25rem;
+        border-bottom: 1px solid var(--gray-100);
+        background: linear-gradient(135deg, rgba(16,185,129,.10), rgba(79,70,229,.06));
+    }
+
+    .order-hero-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--success);
+        color: #fff;
+        box-shadow: var(--shadow-sm);
+        flex-shrink: 0;
+        font-size: 1.25rem;
+    }
+
+    .order-hero-title {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        letter-spacing: -0.02em;
+    }
+
+    .order-hero-subtitle {
+        margin: 0.35rem 0 0;
+        color: var(--gray-700);
+        font-size: 0.92rem;
+        line-height: 1.4;
+    }
+
+    .order-content {
+        padding: 1.5rem;
+    }
+
+    .order-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .meta-item {
+        background: #fff;
+        border: 1px solid var(--gray-100);
+        border-radius: var(--radius-lg);
+        padding: 0.85rem 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .meta-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-500);
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        display: block;
+    }
+
+    .meta-value {
+        font-weight: 700;
+        color: var(--gray-900);
+        word-break: break-word;
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1.25rem 0 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--gray-700);
+        letter-spacing: -0.01em;
+    }
+
+    .section-title i { color: var(--primary); }
+
+    .table-card {
+        border: 1px solid var(--gray-100);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .order-table {
+        margin: 0;
+        width: 100%;
+    }
+
+    .order-table thead th {
+        background: var(--gray-50);
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--gray-500);
+        font-weight: 800;
+        padding: 0.85rem 1rem;
+        white-space: nowrap;
+    }
+
+    .order-table tbody td {
+        padding: 0.95rem 1rem;
+        border-bottom: 1px solid var(--gray-100);
+        color: var(--gray-700);
+        vertical-align: middle;
+        font-size: 0.92rem;
+    }
+
+    .order-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .order-table tfoot th {
+        padding: 0.95rem 1rem;
+        background: #fff;
+        border-top: 2px solid var(--gray-100);
+        color: var(--gray-900);
+        font-weight: 900;
+        font-size: 0.95rem;
+    }
+
+    .money {
+        font-variant-numeric: tabular-nums;
+        font-weight: 800;
+        color: var(--gray-900);
+        white-space: nowrap;
+    }
+
+    .muted {
+        color: var(--gray-600);
+        font-size: 0.9rem;
+        margin: 1rem 0 0;
+    }
+
+    .order-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .btn-primary-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.1rem;
+        border-radius: var(--radius);
+        border: 1px solid transparent;
+        background: var(--primary);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.92rem;
+        box-shadow: var(--shadow-sm);
+        transition: all .15s ease;
+    }
+
+    .btn-primary-modern:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+    }
+
+    .btn-secondary-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.1rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--gray-200);
+        background: #fff;
+        color: var(--gray-700);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.92rem;
+        box-shadow: var(--shadow-sm);
+        transition: all .15s ease;
+    }
+
+    .btn-secondary-modern:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+        transform: translateY(-1px);
+    }
+
+    /* Responsive: table scroll */
+    .table-responsive-modern { overflow-x: auto; }
+
+    @@media (max-width: 768px) {
+        .order-hero { padding: 1.25rem; }
+        .order-content { padding: 1.25rem; }
+        .order-hero-title { font-size: 1.1rem; }
+    }
+</style>
+
+<div class="container order-page">
+    <div class="order-card">
+
+        <!-- HERO / CONFIRMATION -->
+        <div class="order-hero" role="status" aria-live="polite">
+            <div class="order-hero-icon">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <h1 class="order-hero-title">Orden #@Model.IdOrden procesada con éxito</h1>
+                <p class="order-hero-subtitle">
+                    Estimado cliente, su orden fue procesada correctamente. A continuación encontrará el detalle de su compra.
+                </p>
+            </div>
+        </div>
+
+        <div class="order-content">
+            <!-- META -->
+            <div class="order-meta">
+                <div class="meta-item">
+                    <span class="meta-label">Cliente</span>
+                    <span class="meta-value">@((Model.Usuario?.Nombre ?? "No especificado"))</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Email</span>
+                    <span class="meta-value">@((Model.Usuario?.Email ?? "-"))</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Monto total</span>
+                    <span class="meta-value money">S/ @Model.Total.ToString("N2")</span>
+                </div>
+            </div>
+
+            <!-- PRODUCTS -->
+            <div class="section-title">
+                <i class="bi bi-bag-check"></i> Productos
+            </div>
+
+            <div class="table-card">
+                <div class="table-responsive-modern">
+                    <table class="order-table" aria-label="Detalle de productos de la orden">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio unitario</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var d in (Model.OrdenDetalles ?? Enumerable.Empty<Proy_DSWI_NinaJose.Models.OrdenDetalle>()))
+                            {
+                                var subtotal = d.Cantidad * d.PrecioUnitario;
+
+                                <tr>
+                                    <td>@(d.Producto?.Nombre ?? "Producto")</td>
+                                    <td class="text-center">@d.Cantidad</td>
+                                    <td class="text-end money">S/ @d.PrecioUnitario.ToString("N2")</td>
+                                    <td class="text-end money">S/ @subtotal.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+
+                        <tfoot>
+                            <tr>
+                                <th colspan="3" class="text-end">Monto total:</th>
+                                <th class="text-end money">S/ @Model.Total.ToString("N2")</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <p class="muted">Gracias por su compra. Si necesita soporte, contáctenos indicando el número de orden.</p>
+
+            <!-- FOOTER ACTIONS -->
+            <div class="order-footer">
+                <a asp-controller="Producto"
+                   asp-action="IndexProductos"
+                   class="btn-primary-modern">
+                    <i class="bi bi-arrow-left"></i> Volver al catálogo
+                </a>
+
+                <a asp-controller="Orden"
+                   asp-action="DetailsMyOrder"
+                   asp-route-id="@Model.IdOrden"
+                   class="btn-secondary-modern">
+                    <i class="bi bi-receipt"></i> Ver detalle de la orden
+                </a>
+            </div>
+        </div>
+
     </div>
 </div>

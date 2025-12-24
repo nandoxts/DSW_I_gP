@@ -6,123 +6,650 @@
 }
 
 <style>
-    .header-section {
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-light: #eef2ff;
+
+        --success: #10b981;
+        --success-light: #ecfdf5;
+
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+
+        --info: #3b82f6;
+        --info-light: #eff6ff;
+
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-300: #d1d5db;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-600: #4b5563;
+        --gray-700: #374151;
+        --gray-900: #111827;
+
+        --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+        --radius: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+    }
+
+    /* Alert Toast Messages */
+    .alert-toast {
+        position: fixed;
+        top: 90px;
+        right: 24px;
+        max-width: 450px;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid;
+        background: #fff;
+    }
+
+    .alert-toast.success { border-left-color: var(--success); }
+    .alert-toast.error { border-left-color: var(--danger); }
+    .alert-toast.hiding { animation: slideOut 0.3s ease forwards; }
+
+    .alert-toast-icon {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+    .alert-toast.success .alert-toast-icon { background: var(--success-light); color: var(--success); }
+    .alert-toast.error .alert-toast-icon { background: var(--danger-light); color: var(--danger); }
+
+    .alert-toast-content { flex: 1; }
+    .alert-toast-title { font-weight: 600; color: var(--gray-900); font-size: 0.9rem; margin-bottom: 0.25rem; }
+    .alert-toast-message { color: var(--gray-600); font-size: 0.85rem; line-height: 1.4; }
+
+    .alert-toast-close {
+        background: none; border: none;
+        color: var(--gray-400);
+        cursor: pointer;
+        padding: 0.25rem;
+        margin: -0.25rem -0.25rem 0 0;
+        border-radius: var(--radius);
+        transition: all 0.15s;
+    }
+    .alert-toast-close:hover { background: var(--gray-100); color: var(--gray-600); }
+
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @@keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+
+    /* Page layout */
+    .page-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
 
-    .header-section h2 {
+    .page-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
         margin: 0;
-        color: #333;
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--gray-900);
+        letter-spacing: -0.025em;
     }
 
-    .user-table {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    .page-title-icon {
+        width: 42px;
+        height: 42px;
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.25rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.25rem;
+        background: #fff;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        color: var(--gray-700);
+        font-weight: 500;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.15s ease;
+        box-shadow: var(--shadow-sm);
+    }
+    .btn-back:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+        color: var(--gray-900);
+        transform: translateY(-1px);
+    }
+
+    /* Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .stat-badge {
+        background: #fff;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        position: relative;
         overflow: hidden;
     }
 
-    .table {
-        margin-bottom: 0;
+    .stat-badge::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(79,70,229,.06), rgba(124,58,237,.04));
+        opacity: 0;
+        transition: opacity .2s ease;
+        pointer-events: none;
+    }
+    .stat-badge:hover::after { opacity: 1; }
+
+    .stat-badge-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--gray-500);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
 
-    .table th {
-        background-color: #667eea;
-        color: white;
+    .stat-badge-value {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        letter-spacing: -0.02em;
+        line-height: 1.1;
+    }
+
+    /* Table Card */
+    .table-card {
+        background: #fff;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+        overflow: hidden;
+    }
+
+    .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        background: var(--gray-50);
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .table-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--gray-700);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .table-title i { color: var(--primary); }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fff;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        padding: 0.45rem 0.75rem;
+        transition: all 0.15s;
+        box-shadow: var(--shadow-sm);
+    }
+    .search-box:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    .search-box i { color: var(--gray-400); }
+    .search-box input {
         border: none;
+        outline: none;
+        font-size: 0.85rem;
+        width: 220px;
+        color: var(--gray-700);
+        background: transparent;
+    }
+    .search-box input::placeholder { color: var(--gray-400); }
+
+    .table-wrapper { overflow-x: auto; }
+
+    .table { margin: 0; width: 100%; }
+
+    .table thead th {
+        background: #fff;
+        border: none;
+        border-bottom: 2px solid var(--gray-100);
+        padding: 0.875rem 1.25rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--gray-500);
+        white-space: nowrap;
     }
 
-    .table-hover tbody tr:hover {
-        background-color: #f5f5f5;
+    .table tbody td {
+        padding: 1rem 1.25rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--gray-100);
+        font-size: 0.9rem;
+        color: var(--gray-700);
+    }
+
+    .table tbody tr {
+        transition: background 0.15s ease;
+    }
+
+    .table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .id-cell strong {
+        font-weight: 800;
+        color: var(--gray-900);
+    }
+
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        min-width: 220px;
+    }
+
+    .client-avatar {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .user-info {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .user-name {
+        font-weight: 700;
+        color: var(--gray-900);
+    }
+
+    /* Role badges */
+    .badge-role {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.3rem 0.7rem;
+        border-radius: 9999px;
+        font-weight: 700;
+        font-size: 0.75rem;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
     }
 
     .badge-admin {
-        background-color: #667eea;
+        background: linear-gradient(90deg, #7c3aed, #4f46e5);
+        color: #fff;
+        box-shadow: var(--shadow-sm);
     }
 
     .badge-cliente {
-        background-color: #43e97b;
+        background: var(--success-light);
+        color: var(--success);
+        border: 1px solid rgba(16,185,129,.15);
     }
 
-    .action-buttons a,
-    .action-buttons form {
-        display: inline-block;
-        margin-right: 5px;
+    /* Actions */
+    .action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
 
-    .action-buttons form {
-        margin: 0;
+    .btn-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.42rem 0.8rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        border-radius: var(--radius);
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+        cursor: pointer;
+        text-decoration: none;
+        line-height: 1;
+        box-shadow: var(--shadow-sm);
+        background: #fff;
+        user-select: none;
     }
 
-    .action-buttons .btn {
-        padding: 6px 12px;
-        font-size: 0.85rem;
+    .btn-action:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(79,70,229,.18);
+    }
+
+    .btn-view {
+        background: var(--info-light);
+        color: var(--info);
+        border-color: rgba(59,130,246,.10);
+    }
+    .btn-view:hover {
+        background: var(--info);
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    .btn-edit {
+        background: #fff;
+        color: var(--primary);
+        border-color: var(--gray-200);
+    }
+    .btn-edit:hover {
+        background: var(--primary-light);
+        border-color: #c7d2fe;
+        transform: translateY(-1px);
+    }
+
+    .btn-delete {
+        background: #fff;
+        color: var(--danger);
+        border-color: #fecaca;
+    }
+    .btn-delete:hover {
+        background: var(--danger);
+        color: #fff;
+        border-color: var(--danger);
+        transform: translateY(-1px);
+    }
+
+    /* Disabled / loading for delete */
+    .btn-action.loading {
+        pointer-events: none;
+        opacity: 0.75;
+    }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Empty */
+    .empty-state {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--gray-500);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .alert-toast { left: 16px; right: 16px; max-width: none; }
+        .page-header { flex-direction: column; align-items: flex-start; }
+        .search-box input { width: 150px; }
+        .table thead th, .table tbody td { padding: 0.75rem 1rem; }
+        .action-buttons { gap: 0.35rem; }
     }
 </style>
 
-<div class="header-section">
-    <h2>Gestión de Usuarios</h2>
-    <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-secondary">
+<!-- Alert Toast Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert-toast success" id="successAlert">
+        <div class="alert-toast-icon"><i class="bi bi-check-lg"></i></div>
+        <div class="alert-toast-content">
+            <div class="alert-toast-title">¡Operación exitosa!</div>
+            <div class="alert-toast-message">@TempData["Success"]</div>
+        </div>
+        <button class="alert-toast-close" onclick="closeAlert('successAlert')"><i class="bi bi-x-lg"></i></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert-toast error" id="errorAlert">
+        <div class="alert-toast-icon"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="alert-toast-content">
+            <div class="alert-toast-title">Error</div>
+            <div class="alert-toast-message">@TempData["Error"]</div>
+        </div>
+        <button class="alert-toast-close" onclick="closeAlert('errorAlert')"><i class="bi bi-x-lg"></i></button>
+    </div>
+}
+
+<div class="page-header">
+    <h1 class="page-title">
+        <span class="page-title-icon"><i class="bi bi-people"></i></span>
+        Gestión de Usuarios
+    </h1>
+    <a href="@Url.Action("Dashboard", "Admin")" class="btn-back">
         <i class="bi bi-arrow-left"></i> Volver al Dashboard
     </a>
 </div>
 
-<div class="user-table">
-    <table class="table table-hover">
-        <thead>
-            <tr>
-                <th style="width: 10%">ID</th>
-                <th style="width: 25%">Nombre</th>
-                <th style="width: 30%">Email</th>
-                <th style="width: 15%">Rol</th>
-                <th style="width: 20%">Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                @foreach (var usuario in Model)
-                {
-                    <tr>
-                        <td><strong>#@usuario.IdUsuario</strong></td>
-                        <td>@usuario.Nombre</td>
-                        <td>@usuario.Email</td>
-                        <td>
-                            @if (usuario.Rol == "Admin")
-                            {
-                                <span class="badge badge-admin">Administrador</span>
-                            }
-                            else
-                            {
-                                <span class="badge badge-cliente">Cliente</span>
-                            }
-                        </td>
-                        <td class="action-buttons">
-                            <a href="@Url.Action("DetailsUsuario", "Usuario", new { id = usuario.IdUsuario })" class="btn btn-sm btn-info">
-                                <i class="bi bi-eye"></i> Ver
-                            </a>
-                            <a href="@Url.Action("EditUsuario", "Usuario", new { id = usuario.IdUsuario })" class="btn btn-sm btn-warning">
-                                <i class="bi bi-pencil"></i> Editar
-                            </a>
-                            <form action="@Url.Action("DeleteUsuario", "Usuario", new { id = usuario.IdUsuario })" method="post" style="display: inline;">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Eliminar este usuario?');">
-                                    <i class="bi bi-trash"></i> Eliminar
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">No hay usuarios registrados.</td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<div class="stats-row">
+    <div class="stat-badge">
+        <span class="stat-badge-label">Total usuarios</span>
+        <span class="stat-badge-value">@(Model?.Count() ?? 0)</span>
+    </div>
+    <div class="stat-badge">
+        <span class="stat-badge-label">Administradores</span>
+        <span class="stat-badge-value">@(Model?.Count(u => u.Rol == "Admin") ?? 0)</span>
+    </div>
+    <div class="stat-badge">
+        <span class="stat-badge-label">Clientes</span>
+        <span class="stat-badge-value">@(Model?.Count(u => u.Rol != "Admin") ?? 0)</span>
+    </div>
 </div>
+
+<div class="table-card">
+    <div class="table-header">
+        <span class="table-title"><i class="bi bi-list-ul"></i> Listado de usuarios</span>
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar usuario..." onkeyup="filterTable()">
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-wrapper">
+            <table class="table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var usuario in Model.OrderBy(u => u.IdUsuario))
+                    {
+                        string inicial = !string.IsNullOrEmpty(usuario.Nombre)
+                            ? usuario.Nombre.Substring(0, 1).ToUpper()
+                            : "?";
+
+                        <tr data-user-id="@usuario.IdUsuario">
+                            <td class="id-cell"><strong>#@usuario.IdUsuario</strong></td>
+
+                            <td>
+                                <div class="user-cell">
+                                    <div class="client-avatar">@inicial</div>
+                                    <div class="user-info">
+                                        <span class="user-name">@usuario.Nombre</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>@usuario.Email</td>
+
+                            <td>
+                                @if (usuario.Rol == "Admin")
+                                {
+                                    <span class="badge-role badge-admin">Administrador</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-role badge-cliente">Cliente</span>
+                                }
+                            </td>
+
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="@Url.Action("DetailsUsuario", "Usuario", new { id = usuario.IdUsuario })"
+                                       class="btn-action btn-view">
+                                        <i class="bi bi-eye"></i> Ver
+                                    </a>
+
+                                    <a href="@Url.Action("EditUsuario", "Usuario", new { id = usuario.IdUsuario })"
+                                       class="btn-action btn-edit">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+
+                                    <form action="@Url.Action("DeleteUsuario", "Usuario", new { id = usuario.IdUsuario })"
+                                          method="post"
+                                          style="display:inline;"
+                                          class="delete-form">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit"
+                                                class="btn-action btn-delete"
+                                                onclick="return confirm('¿Eliminar este usuario?');">
+                                            <span class="btn-text"><i class="bi bi-trash"></i> Eliminar</span>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">No hay usuarios registrados.</div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Close alert function
+        function closeAlert(id) {
+            const alert = document.getElementById(id);
+            if (alert) {
+                alert.classList.add('hiding');
+                setTimeout(() => alert.remove(), 300);
+            }
+        }
+
+        // Auto close alerts after 8 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.alert-toast').forEach(alert => {
+                alert.classList.add('hiding');
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 8000);
+
+        // Filter table
+        function filterTable() {
+            const input = document.getElementById('searchInput');
+            const filter = (input.value || '').toLowerCase();
+            const table = document.getElementById('usersTable');
+            if (!table) return;
+
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let found = false;
+
+                for (let j = 0; j < cells.length; j++) {
+                    const cellText = (cells[j].textContent || cells[j].innerText || '').toLowerCase();
+                    if (cellText.indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                rows[i].style.display = found ? '' : 'none';
+            }
+        }
+
+        // Disable delete button on submit + show loading
+        document.querySelectorAll('.delete-form').forEach(form => {
+            form.addEventListener('submit', function () {
+                const btn = this.querySelector('.btn-delete');
+                if (btn) {
+                    btn.classList.add('loading');
+                    btn.disabled = true;
+
+                    // Optional: swap text with spinner
+                    btn.innerHTML = '<span class="spinner"></span> Eliminando...';
+                }
+            });
+        });
+    </script>
+}

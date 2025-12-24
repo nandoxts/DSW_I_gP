@@ -1,4 +1,5 @@
 ﻿@model List<Proy_DSWI_NinaJose.Models.Orden>
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
     ViewData["Title"] = "Todas las Órdenes";
     Layout = "_Layout";
@@ -27,9 +28,116 @@
         --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
         --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         --radius: 0.5rem;
         --radius-lg: 0.75rem;
         --radius-xl: 1rem;
+    }
+
+    /* Alert Toast Messages */
+    .alert-toast {
+        position: fixed;
+        top: 90px;
+        right: 24px;
+        max-width: 450px;
+        padding: 1rem 1.25rem;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+        border-left: 4px solid;
+        background: #fff;
+    }
+
+    .alert-toast.success {
+        border-left-color: var(--success);
+    }
+
+    .alert-toast.error {
+        border-left-color: var(--danger);
+    }
+
+    .alert-toast.hiding {
+        animation: slideOut 0.3s ease forwards;
+    }
+
+    .alert-toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+    }
+
+    .alert-toast.success .alert-toast-icon {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .alert-toast.error .alert-toast-icon {
+        background: var(--danger-light);
+        color: var(--danger);
+    }
+
+    .alert-toast-content {
+        flex: 1;
+    }
+
+    .alert-toast-title {
+        font-weight: 600;
+        color: var(--gray-900);
+        font-size: 0.9rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .alert-toast-message {
+        color: var(--gray-600);
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+
+    .alert-toast-close {
+        background: none;
+        border: none;
+        color: var(--gray-400);
+        cursor: pointer;
+        padding: 0.25rem;
+        margin: -0.25rem -0.25rem 0 0;
+        border-radius: var(--radius);
+        transition: all 0.15s;
+    }
+
+    .alert-toast-close:hover {
+        background: var(--gray-100);
+        color: var(--gray-600);
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideOut {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
     }
 
     /* Header */
@@ -156,7 +264,6 @@
         color: var(--primary);
     }
 
-    /* Search/Filter (opcional) */
     .search-box {
         display: flex;
         align-items: center;
@@ -369,6 +476,44 @@
         border-color: var(--success);
     }
 
+    .btn-confirm:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Loading state */
+    .btn-confirm.loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .btn-confirm .btn-loading {
+        display: none;
+    }
+
+    .btn-confirm.loading .btn-text {
+        display: none;
+    }
+
+    .btn-confirm.loading .btn-loading {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .spinner {
+        width: 14px;
+        height: 14px;
+        border: 2px solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
     /* Empty State */
     .empty-state {
         text-align: center;
@@ -405,6 +550,12 @@
 
     /* Responsive */
     @@media (max-width: 768px) {
+        .alert-toast {
+            left: 16px;
+            right: 16px;
+            max-width: none;
+        }
+
         .page-header {
             flex-direction: column;
             align-items: flex-start;
@@ -431,6 +582,39 @@
         }
     }
 </style>
+
+<!-- Alert Toast Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert-toast success" id="successAlert">
+        <div class="alert-toast-icon">
+            <i class="bi bi-check-lg"></i>
+        </div>
+        <div class="alert-toast-content">
+            <div class="alert-toast-title">¡Operación exitosa!</div>
+            <div class="alert-toast-message">@TempData["Success"]</div>
+        </div>
+        <button class="alert-toast-close" onclick="closeAlert('successAlert')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert-toast error" id="errorAlert">
+        <div class="alert-toast-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        <div class="alert-toast-content">
+            <div class="alert-toast-title">Error</div>
+            <div class="alert-toast-message">@TempData["Error"]</div>
+        </div>
+        <button class="alert-toast-close" onclick="closeAlert('errorAlert')">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+}
 
 <div class="page-header">
     <h1 class="page-title">
@@ -513,7 +697,7 @@
                             _ => "bi-circle-fill"
                         };
 
-                        <tr>
+                        <tr data-order-id="@orden.IdOrden">
                             <td><span class="order-id">#@orden.IdOrden</span></td>
                             <td>
                                 <div class="client-cell">
@@ -543,10 +727,11 @@
                                     </a>
                                     @if (orden.Estado == "Pendiente")
                                     {
-                                        <form asp-action="ConfirmOrder" asp-route-id="@orden.IdOrden" method="post" class="d-inline m-0">
+                                        <form asp-action="ConfirmOrder" asp-route-id="@orden.IdOrden" method="post" class="d-inline m-0 confirm-form">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn-action btn-confirm">
-                                                <i class="bi bi-check-lg"></i> Confirmar
+                                                <span class="btn-text"><i class="bi bi-check-lg"></i> Confirmar</span>
+                                                <span class="btn-loading"><span class="spinner"></span> Enviando...</span>
                                             </button>
                                         </form>
                                     }
@@ -572,10 +757,30 @@
 
 @section Scripts {
     <script>
+        // Close alert function
+        function closeAlert(id) {
+            const alert = document.getElementById(id);
+            if (alert) {
+                alert.classList.add('hiding');
+                setTimeout(() => alert.remove(), 300);
+            }
+        }
+
+        // Auto close alerts after 8 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.alert-toast').forEach(alert => {
+                alert.classList.add('hiding');
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 8000);
+
+        // Filter table
         function filterTable() {
             const input = document.getElementById('searchInput');
             const filter = input.value.toLowerCase();
             const table = document.getElementById('ordersTable');
+            if (!table) return;
+            
             const rows = table.getElementsByTagName('tr');
 
             for (let i = 1; i < rows.length; i++) {
@@ -593,5 +798,16 @@
                 rows[i].style.display = found ? '' : 'none';
             }
         }
+
+        // Add loading state to confirm buttons
+        document.querySelectorAll('.confirm-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const btn = this.querySelector('.btn-confirm');
+                if (btn) {
+                    btn.classList.add('loading');
+                    btn.disabled = true;
+                }
+            });
+        });
     </script>
 }

@@ -30,6 +30,9 @@ builder.Services.AddSession(options =>
 // 4) MVC
 builder.Services.AddControllersWithViews();
 
+// HttpClient factory (necesario para llamadas a SendGrid desde controllers)
+builder.Services.AddHttpClient();
+
 var app = builder.Build();
 
 // Middlewares
