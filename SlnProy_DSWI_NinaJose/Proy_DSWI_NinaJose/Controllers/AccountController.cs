@@ -35,6 +35,7 @@ namespace Proy_DSWI_NinaJose.Controllers
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
                         new Claim(ClaimTypes.Name,           user.Nombre),
+                        new Claim(ClaimTypes.Email,          user.Email ?? string.Empty),
                         new Claim(ClaimTypes.Role,           user.Rol)
                     };
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -79,6 +80,7 @@ namespace Proy_DSWI_NinaJose.Controllers
                     {
                         new Claim(ClaimTypes.NameIdentifier, user.IdUsuario.ToString()),
                         new Claim(ClaimTypes.Name,           user.Nombre),
+                        new Claim(ClaimTypes.Email,          user.Email ?? string.Empty),
                         new Claim(ClaimTypes.Role,           user.Rol)
                     };
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
