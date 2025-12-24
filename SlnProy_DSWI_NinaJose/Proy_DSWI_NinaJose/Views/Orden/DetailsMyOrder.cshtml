@@ -1,40 +1,778 @@
 ﻿@model Proy_DSWI_NinaJose.Models.Orden
 @using System.Globalization
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @{
     ViewData["Title"] = $"Orden #{Model.IdOrden}";
+    Layout = "_Layout";
+    
+    // Determinar clase y texto del estado
+    string statusClass = Model.Estado switch
+    {
+        "Completada" => "status-completed",
+        "Confirmado" => "status-completed",
+        "Pendiente" => "status-pending",
+        "Cancelada" => "status-cancelled",
+        _ => "status-completed"
+    };
+    
+    string statusIcon = Model.Estado switch
+    {
+        "Completada" => "bi-check-circle-fill",
+        "Confirmado" => "bi-check-circle-fill",
+        "Pendiente" => "bi-clock-fill",
+        "Cancelada" => "bi-x-circle-fill",
+        _ => "bi-circle-fill"
+    };
 }
 
-<h2>@ViewData["Title"]</h2>
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --danger-light: #fef2f2;
+        --info: #3b82f6;
+        --info-light: #eff6ff;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-700: #374151;
+        --gray-900: #111827;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-2xl: 1.25rem;
+    }
 
-<div class="mb-3">
-    <strong>Fecha:</strong> @Model.Fecha.ToString("f", CultureInfo.CurrentCulture)<br />
-    <strong>Estado:</strong> @Model.Estado<br />
-    <strong>Total:</strong> S/ @Model.Total.ToString("F2")<br />
-    <strong>Cliente:</strong> @Model.Usuario.Nombre (@Model.Usuario.Email)
+    /* Page Header */
+    .order-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        border-radius: var(--radius-2xl);
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .order-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .order-header::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        left: 5%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 50%;
+    }
+
+    .order-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .order-header-left h1 {
+        color: #fff;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .order-number {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 1rem;
+    }
+
+    .order-date {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .order-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: var(--radius-lg);
+        font-size: 0.9rem;
+        font-weight: 600;
+        backdrop-filter: blur(10px);
+    }
+
+    .order-status-badge.status-completed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #a7f3d0;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .order-status-badge.status-pending {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fde68a;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .order-status-badge.status-cancelled {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fecaca;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* Info Cards Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .info-card {
+        background: #fff;
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+    }
+
+    .info-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--gray-100);
+    }
+
+    .info-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+    }
+
+    .info-card-icon.customer {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    .info-card-icon.summary {
+        background: var(--success-light);
+        color: var(--success);
+    }
+
+    .info-card-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .info-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: var(--gray-500);
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: var(--gray-900);
+    }
+
+    .info-value.highlight {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .customer-avatar {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary), #7c3aed);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-right: 1rem;
+    }
+
+    .customer-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .customer-details h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.25rem;
+    }
+
+    .customer-details p {
+        font-size: 0.85rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+
+    /* Products Table Card */
+    .table-card {
+        background: #fff;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .table-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        background: var(--gray-50);
+    }
+
+    .table-card-title {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .table-card-title i {
+        color: var(--primary);
+    }
+
+    .items-count {
+        background: var(--primary-light);
+        color: var(--primary);
+        padding: 0.35rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    /* Table */
+    .order-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .order-table thead th {
+        background: #fff;
+        padding: 1rem 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--gray-500);
+        border-bottom: 2px solid var(--gray-100);
+        text-align: left;
+    }
+
+    .order-table thead th:nth-child(2),
+    .order-table thead th:nth-child(3),
+    .order-table thead th:nth-child(4) {
+        text-align: right;
+    }
+
+    .order-table tbody td {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--gray-100);
+        vertical-align: middle;
+    }
+
+    .order-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .order-table tbody tr:hover {
+        background: var(--gray-50);
+    }
+
+    .product-cell {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .product-thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius);
+        background: var(--gray-100);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .product-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .product-thumb i {
+        font-size: 1.5rem;
+        color: var(--gray-400);
+    }
+
+    .product-info h4 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.25rem;
+    }
+
+    .product-info p {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+
+    .quantity-cell {
+        text-align: right;
+        font-weight: 500;
+        color: var(--gray-700);
+    }
+
+    .price-cell {
+        text-align: right;
+        color: var(--gray-500);
+    }
+
+    .subtotal-cell {
+        text-align: right;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    /* Total Footer */
+    .table-footer {
+        background: var(--gray-50);
+        padding: 1.5rem;
+        border-top: 2px solid var(--gray-200);
+    }
+
+    .total-rows {
+        max-width: 300px;
+        margin-left: auto;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+    .total-row.subtotal {
+        color: var(--gray-500);
+        font-size: 0.9rem;
+    }
+
+    .total-row.grand-total {
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 2px solid var(--gray-200);
+    }
+
+    .total-row.grand-total .total-label {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-900);
+    }
+
+    .total-row.grand-total .total-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    /* Actions */
+    .page-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #fff;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .btn-back:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+        color: var(--gray-900);
+    }
+
+    .btn-print {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .btn-print:hover {
+        background: var(--primary-hover);
+    }
+
+    /* Timeline (opcional para historial) */
+    .order-timeline {
+        background: #fff;
+        border-radius: var(--radius-xl);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+    }
+
+    .timeline-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .timeline-title i {
+        color: var(--primary);
+    }
+
+    .timeline-item {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem 0;
+    }
+
+    .timeline-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--success);
+        margin-top: 4px;
+        flex-shrink: 0;
+    }
+
+    .timeline-dot.pending {
+        background: var(--warning);
+    }
+
+    .timeline-content p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--gray-700);
+    }
+
+    .timeline-content span {
+        font-size: 0.8rem;
+        color: var(--gray-400);
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .order-header {
+            padding: 1.5rem;
+        }
+
+        .order-header-left h1 {
+            font-size: 1.35rem;
+            flex-wrap: wrap;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-table thead {
+            display: none;
+        }
+
+        .order-table tbody td {
+            display: block;
+            padding: 0.75rem 1.25rem;
+            text-align: right;
+        }
+
+        .order-table tbody td::before {
+            content: attr(data-label);
+            float: left;
+            font-weight: 600;
+            color: var(--gray-500);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .order-table tbody td:first-child {
+            text-align: left;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--gray-200);
+        }
+
+        .order-table tbody td:first-child::before {
+            display: none;
+        }
+
+        .order-table tbody tr:first-child td:first-child {
+            border-top: none;
+        }
+
+        .product-cell {
+            justify-content: flex-start;
+        }
+
+        .page-actions {
+            flex-direction: column;
+        }
+
+        .page-actions button,
+        .page-actions a {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+
+    /* Print Styles */
+    @@media print {
+        .order-header {
+            background: var(--gray-100) !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .btn-back, .btn-print, .page-actions {
+            display: none !important;
+        }
+    }
+</style>
+
+<!-- Order Header -->
+<div class="order-header">
+    <div class="order-header-content">
+        <div class="order-header-left">
+            <h1>
+                <i class="bi bi-receipt"></i>
+                Orden <span class="order-number">#@Model.IdOrden</span>
+            </h1>
+            <div class="order-date">
+                <i class="bi bi-calendar3"></i>
+                @Model.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy 'a las' HH:mm", new CultureInfo("es-PE"))
+            </div>
+        </div>
+        <div class="order-status-badge @statusClass">
+            <i class="bi @statusIcon"></i>
+            @Model.Estado
+        </div>
+    </div>
 </div>
 
-<h4>Detalles</h4>
-<table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th class="text-center">Cantidad</th>
-            <th class="text-end">Precio Unit.</th>
-            <th class="text-end">Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var d in Model.OrdenDetalles)
-        {
+<!-- Info Cards -->
+<div class="info-grid">
+    <!-- Customer Card -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <div class="info-card-icon customer">
+                <i class="bi bi-person"></i>
+            </div>
+            <h3 class="info-card-title">Información del Cliente</h3>
+        </div>
+        <div class="info-card-body">
+            <div class="customer-info">
+                @{
+                    string inicial = !string.IsNullOrEmpty(Model.Usuario?.Nombre) 
+                        ? Model.Usuario.Nombre.Substring(0, 1).ToUpper() 
+                        : "?";
+                }
+                <div class="customer-avatar">@inicial</div>
+                <div class="customer-details">
+                    <h4>@(Model.Usuario?.Nombre ?? "Cliente")</h4>
+                    <p>@(Model.Usuario?.Email ?? "Sin email")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="info-card">
+        <div class="info-card-header">
+            <div class="info-card-icon summary">
+                <i class="bi bi-clipboard-data"></i>
+            </div>
+            <h3 class="info-card-title">Resumen del Pedido</h3>
+        </div>
+        <div class="info-card-body">
+            <div class="info-row">
+                <span class="info-label">Productos</span>
+                <span class="info-value">@Model.OrdenDetalles.Count items</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Unidades totales</span>
+                <span class="info-value">@Model.OrdenDetalles.Sum(d => d.Cantidad)</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Total</span>
+                <span class="info-value highlight">S/ @Model.Total.ToString("N2")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Products Table -->
+<div class="table-card">
+    <div class="table-card-header">
+        <h3 class="table-card-title">
+            <i class="bi bi-box-seam"></i>
+            Detalle de Productos
+        </h3>
+        <span class="items-count">@Model.OrdenDetalles.Count productos</span>
+    </div>
+
+    <table class="order-table">
+        <thead>
             <tr>
-                <td>@d.Producto.Nombre</td>
-                <td class="text-center">@d.Cantidad</td>
-                <td class="text-end">S/ @d.PrecioUnitario.ToString("F2")</td>
-                <td class="text-end">S/ @String.Format("{0:F2}", d.Cantidad * d.PrecioUnitario)</td>
-
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unit.</th>
+                <th>Subtotal</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @foreach (var d in Model.OrdenDetalles)
+            {
+                var subtotal = d.Cantidad * d.PrecioUnitario;
+                <tr>
+                    <td data-label="Producto">
+                        <div class="product-cell">
+                            <div class="product-thumb">
+                                @if (!string.IsNullOrEmpty(d.Producto?.ImagenUrl))
+                                {
+                                    <img src="@d.Producto.ImagenUrl" alt="@d.Producto.Nombre" onerror="this.style.display='none';this.nextElementSibling.style.display='block';" />
+                                    <i class="bi bi-box" style="display:none;"></i>
+                                }
+                                else
+                                {
+                                    <i class="bi bi-box"></i>
+                                }
+                            </div>
+                            <div class="product-info">
+                                <h4>@d.Producto?.Nombre</h4>
+                                <p>SKU: @d.IdProducto</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="quantity-cell" data-label="Cantidad">@d.Cantidad</td>
+                    <td class="price-cell" data-label="Precio Unit.">S/ @d.PrecioUnitario.ToString("F2")</td>
+                    <td class="subtotal-cell" data-label="Subtotal">S/ @subtotal.ToString("F2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
 
-<button type="button" class="btn btn-secondary" onclick="window.history.back();">Volver</button>
+    <div class="table-footer">
+        <div class="total-rows">
+            <div class="total-row subtotal">
+                <span class="total-label">Subtotal</span>
+                <span class="total-value">S/ @Model.OrdenDetalles.Sum(d => d.Cantidad * d.PrecioUnitario).ToString("F2")</span>
+            </div>
+            <div class="total-row subtotal">
+                <span class="total-label">Envío</span>
+                <span class="total-value">Gratis</span>
+            </div>
+            <div class="total-row grand-total">
+                <span class="total-label">Total</span>
+                <span class="total-value">S/ @Model.Total.ToString("F2")</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="page-actions">
+    <button type="button" class="btn-back" onclick="window.history.back();">
+        <i class="bi bi-arrow-left"></i>
+        Volver
+    </button>
+    <button type="button" class="btn-print" onclick="window.print();">
+        <i class="bi bi-printer"></i>
+        Imprimir
+    </button>
+</div>

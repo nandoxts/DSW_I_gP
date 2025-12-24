@@ -16,16 +16,37 @@ namespace Proy_DSWI_NinaJose.Controllers
         private readonly BDPROYVENTASContex _ctx;
         public ProductoController(BDPROYVENTASContex ctx) => _ctx = ctx;
 
-        // GET: /Producto/IndexProductos
+            
         [AllowAnonymous]
         public async Task<IActionResult> IndexProductos(int? page)
         {
-            int pageSize = 6;
+            int pageSize = 8; // Aumentado para mejor visualización
             int pageNumber = page ?? 1;
 
+            // Obtener todos los productos con sus categorías y detalles de órdenes
             var productos = await _ctx.Productos
                 .Include(p => p.Categoria)
+                .Include(p => p.OrdenDetalles) // Incluir para calcular ventas
                 .ToListAsync();
+
+            // Obtener los productos más vendidos (Top 6)
+            var masVendidos = productos
+                .Select(p => new
+                {
+                    Producto = p,
+                    TotalVendido = p.OrdenDetalles?.Sum(od => od.Cantidad) ?? 0
+                })
+                .Where(x => x.TotalVendido > 0) // Solo los que tienen ventas
+                .OrderByDescending(x => x.TotalVendido)
+                .Take(6)
+                .Select(x => x.Producto)
+                .ToList();
+
+            // Si no hay productos vendidos, mostrar los primeros 6 productos
+            if (!masVendidos.Any())
+            {
+                masVendidos = productos.Take(6).ToList();
+            }
 
             // Paginación de todos los productos
             var productosPaginados = productos.ToPagedList(pageNumber, pageSize);
@@ -33,14 +54,13 @@ namespace Proy_DSWI_NinaJose.Controllers
             // Construir el ViewModel ProductoCat
             var model = new ProductoCat
             {
-                Destacados = productos.Take(3).ToList(),
+                Destacados = masVendidos,
                 ProductosPorCategoria = productos
                     .GroupBy(p => p.Categoria?.Nombre ?? "Sin categoría")
                     .ToDictionary(g => g.Key, g => g.ToList()),
                 ProductosPaginados = productosPaginados
             };
 
-            // Forzamos la ruta absoluta a la carpeta plural
             return View("~/Views/Productos/IndexProductos.cshtml", model);
         }
 

@@ -1,56 +1,679 @@
 ﻿@model Proy_DSWI_NinaJose.Models.Producto
 @using Microsoft.AspNetCore.Mvc.Rendering
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Editar Producto";
     Layout = "_Layout";
 }
 
-<h2>@ViewData["Title"]</h2>
+<style>
+    :root {
+        --primary: #4f46e5;
+        --primary-hover: #4338ca;
+        --primary-light: #eef2ff;
+        --success: #10b981;
+        --success-light: #ecfdf5;
+        --warning: #f59e0b;
+        --warning-light: #fffbeb;
+        --danger: #ef4444;
+        --gray-50: #f9fafb;
+        --gray-100: #f3f4f6;
+        --gray-200: #e5e7eb;
+        --gray-400: #9ca3af;
+        --gray-500: #6b7280;
+        --gray-700: #374151;
+        --gray-900: #111827;
+        --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --radius: 0.5rem;
+        --radius-lg: 0.75rem;
+        --radius-xl: 1rem;
+        --radius-2xl: 1.25rem;
+    }
 
-<form asp-action="EditProducto" method="post" class="mt-4">
-    @Html.AntiForgeryToken()
-    <input type="hidden" asp-for="IdProducto" />
+    /* Header */
+    .page-header {
+        background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+        border-radius: var(--radius-2xl);
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
 
-    <div class="mb-3">
-        <label asp-for="Nombre" class="form-label">Nombre</label>
-        <input asp-for="Nombre" class="form-control" />
-        <span asp-validation-for="Nombre" class="text-danger"></span>
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .page-header-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+    }
+
+    .page-header-text h1 {
+        color: #fff;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .page-header-text p {
+        color: rgba(255, 255, 255, 0.85);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+
+    .header-badge {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 1rem 1.5rem;
+        text-align: center;
+    }
+
+    .header-badge-label {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.25rem;
+    }
+
+    .header-badge-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    /* Form Card */
+    .form-card {
+        background: #fff;
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow);
+        border: 1px solid var(--gray-100);
+        overflow: hidden;
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .form-card-header {
+        background: var(--gray-50);
+        padding: 1.25rem 1.75rem;
+        border-bottom: 1px solid var(--gray-100);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .form-card-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-light);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-size: 1.1rem;
+    }
+
+    .form-card-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0;
+    }
+
+    .form-card-subtitle {
+        font-size: 0.8rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+
+    .form-card-body {
+        padding: 2rem;
+    }
+
+    /* Form Layout */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .form-grid .full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Image Preview Section */
+    .preview-section {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1.5rem;
+        padding: 1.25rem;
+        background: var(--gray-50);
+        border-radius: var(--radius-lg);
+        margin-bottom: 0.5rem;
+    }
+
+    .image-preview {
+        width: 200px;
+        height: 200px;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px dashed var(--gray-300);
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview-placeholder {
+        text-align: center;
+        color: var(--gray-400);
+    }
+
+    .image-preview-placeholder i {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .image-preview-placeholder span {
+        display: block;
+        font-size: 0.8rem;
+    }
+
+    .preview-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .preview-info h4 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gray-900);
+        margin: 0 0 0.5rem;
+    }
+
+    .preview-info p {
+        font-size: 0.85rem;
+        color: var(--gray-500);
+        margin: 0 0 1rem;
+    }
+
+    /* Form Groups */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--gray-700);
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    .form-label .required {
+        color: var(--danger);
+    }
+
+    .form-label i {
+        color: var(--gray-400);
+        font-size: 0.9rem;
+    }
+
+    .form-control, .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        color: var(--gray-900);
+        background: #fff;
+        transition: all 0.15s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .form-control.form-control-lg {
+        padding: 0.875rem 1rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+
+    .form-hint {
+        font-size: 0.75rem;
+        color: var(--gray-400);
+        margin-top: 0.35rem;
+    }
+
+    .text-danger {
+        font-size: 0.8rem;
+        margin-top: 0.35rem;
+    }
+
+    /* Input with Icon */
+    .input-with-icon {
+        position: relative;
+    }
+
+    .input-with-icon .form-control {
+        padding-left: 2.75rem;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+        font-size: 1rem;
+    }
+
+    /* Input Group (prefix) */
+    .input-group-custom {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-prefix {
+        display: flex;
+        align-items: center;
+        padding: 0 1rem;
+        background: var(--gray-100);
+        border: 1px solid var(--gray-200);
+        border-right: none;
+        border-radius: var(--radius) 0 0 var(--radius);
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--gray-500);
+    }
+
+    .input-group-custom .form-control {
+        border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    /* Divider */
+    .form-divider {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 0.5rem 0;
+    }
+
+    .form-divider::before,
+    .form-divider::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--gray-200);
+    }
+
+    .form-divider span {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--gray-400);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* Action Buttons */
+    .form-actions {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--gray-100);
+    }
+
+    .btn-submit {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.75rem;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-submit:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    }
+
+    .btn-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #fff;
+        color: var(--gray-700);
+        border: 1px solid var(--gray-200);
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+
+    .btn-cancel:hover {
+        background: var(--gray-50);
+        border-color: var(--gray-300);
+        color: var(--gray-900);
+    }
+
+    .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: var(--radius);
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        margin-right: auto;
+    }
+
+    .btn-delete:hover {
+        background: var(--danger);
+        border-color: var(--danger);
+        color: #fff;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .page-header {
+            padding: 1.5rem;
+        }
+
+        .page-header-text h1 {
+            font-size: 1.35rem;
+        }
+
+        .form-card-body {
+            padding: 1.25rem;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .preview-section {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .image-preview {
+            margin: 0 auto;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn-delete {
+            margin-right: 0;
+            order: 3;
+        }
+    }
+</style>
+
+<!-- Header -->
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-header-text">
+            <h1>
+                <i class="bi bi-pencil-square"></i>
+                Editar Producto
+            </h1>
+            <p>Actualiza la información del producto. Los campos marcados con * son obligatorios.</p>
+        </div>
+        <div class="header-badge">
+            <div class="header-badge-label">ID Producto</div>
+            <div class="header-badge-value">#@Model.IdProducto</div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label asp-for="Precio" class="form-label">Precio</label>
-        <input asp-for="Precio" class="form-control" />
-        <span asp-validation-for="Precio" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Descripcion" class="form-label">Descripción</label>
-        <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
-        <span asp-validation-for="Descripcion" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="IdCategoria" class="form-label">Categoría</label>
-        <select asp-for="IdCategoria"
-                asp-items="@(ViewData["Categorias"] as SelectList)"
-                class="form-select">
-            <option value="">-- Selecciona categoría --</option>
-        </select>
-        <span asp-validation-for="IdCategoria" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="Stock" class="form-label">Stock</label>
-        <input asp-for="Stock" class="form-control" />
-        <span asp-validation-for="Stock" class="text-danger"></span>
-    </div>
-    <div class="mb-3">
-        <label asp-for="ImagenUrl" class="form-label">URL de imagen</label>
-        <input asp-for="ImagenUrl" class="form-control" />
-        <span asp-validation-for="ImagenUrl" class="text-danger"></span>
+</div>
+
+<!-- Form Card -->
+<div class="form-card">
+    <div class="form-card-header">
+        <div class="form-card-icon">
+            <i class="bi bi-box-seam"></i>
+        </div>
+        <div>
+            <h2 class="form-card-title">Información del Producto</h2>
+            <p class="form-card-subtitle">Modifica los datos según sea necesario</p>
+        </div>
     </div>
 
-    <button type="submit" class="btn btn-primary">Actualizar</button>
-    <a asp-action="IndexProductos" class="btn btn-secondary">Cancelar</a>
-</form>
+    <div class="form-card-body">
+        <form asp-action="EditProducto" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdProducto" />
+
+            <div class="form-grid">
+                <!-- Image Preview -->
+                <div class="preview-section">
+                    <div class="image-preview" id="imagePreview">
+                        @if (!string.IsNullOrEmpty(Model.ImagenUrl))
+                        {
+                            <img src="@Model.ImagenUrl" alt="Preview" id="previewImg" onerror="this.style.display='none';document.getElementById('previewPlaceholder').style.display='block';" />
+                        }
+                        <div class="image-preview-placeholder" id="previewPlaceholder" style="display:@(string.IsNullOrEmpty(Model.ImagenUrl) ? "block" : "none")">
+                            <i class="bi bi-image"></i>
+                            <span>Sin imagen</span>
+                        </div>
+                    </div>
+                    <div class="preview-info">
+                        <h4>Vista previa</h4>
+                        <p>La imagen se actualizará automáticamente cuando modifiques la URL</p>
+                        <div class="form-group">
+                            <label asp-for="ImagenUrl" class="form-label">
+                                <i class="bi bi-link-45deg"></i> URL de la imagen
+                            </label>
+                            <input asp-for="ImagenUrl" class="form-control" placeholder="https://ejemplo.com/imagen.jpg" id="imageUrlInput" />
+                            <span asp-validation-for="ImagenUrl" class="text-danger"></span>
+                            <span class="form-hint">Ingresa la URL completa de la imagen del producto</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-divider">
+                    <span>Datos principales</span>
+                </div>
+
+                <!-- Nombre -->
+                <div class="form-group full-width">
+                    <label asp-for="Nombre" class="form-label">
+                        <i class="bi bi-type"></i> Nombre del producto <span class="required">*</span>
+                    </label>
+                    <input asp-for="Nombre" class="form-control form-control-lg" placeholder="Ej: Retablo Ayacuchano" />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <!-- Descripción -->
+                <div class="form-group full-width">
+                    <label asp-for="Descripcion" class="form-label">
+                        <i class="bi bi-text-paragraph"></i> Descripción
+                    </label>
+                    <textarea asp-for="Descripcion" class="form-control" rows="4" placeholder="Describe las características del producto..."></textarea>
+                    <span asp-validation-for="Descripcion" class="text-danger"></span>
+                    <span class="form-hint">Máximo 500 caracteres</span>
+                </div>
+
+                <div class="form-divider">
+                    <span>Precio e inventario</span>
+                </div>
+
+                <!-- Precio -->
+                <div class="form-group">
+                    <label asp-for="Precio" class="form-label">
+                        <i class="bi bi-tag"></i> Precio <span class="required">*</span>
+                    </label>
+                    <div class="input-group-custom">
+                        <span class="input-prefix">S/</span>
+                        <input asp-for="Precio" class="form-control" placeholder="0.00" step="0.01" />
+                    </div>
+                    <span asp-validation-for="Precio" class="text-danger"></span>
+                </div>
+
+                <!-- Stock -->
+                <div class="form-group">
+                    <label asp-for="Stock" class="form-label">
+                        <i class="bi bi-boxes"></i> Stock disponible <span class="required">*</span>
+                    </label>
+                    <input asp-for="Stock" type="number" class="form-control" placeholder="0" min="0" />
+                    <span asp-validation-for="Stock" class="text-danger"></span>
+                    <span class="form-hint">Cantidad actual en inventario</span>
+                </div>
+
+                <!-- Categoría -->
+                <div class="form-group full-width">
+                    <label asp-for="IdCategoria" class="form-label">
+                        <i class="bi bi-grid-3x3-gap"></i> Categoría <span class="required">*</span>
+                    </label>
+                    <select asp-for="IdCategoria" asp-items="@(ViewData["Categorias"] as SelectList)" class="form-select">
+                        <option value="">-- Selecciona una categoría --</option>
+                    </select>
+                    <span asp-validation-for="IdCategoria" class="text-danger"></span>
+                </div>
+
+                <!-- Actions -->
+                <div class="form-actions">
+                    <form asp-action="DeleteProducto" asp-route-id="@Model.IdProducto" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer.');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn-delete">
+                            <i class="bi bi-trash3"></i> Eliminar
+                        </button>
+                    </form>
+                    <a asp-action="IndexProductos" class="btn-cancel">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn-submit">
+                        <i class="bi bi-check-lg"></i> Guardar cambios
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Focus on name field
+            const nameInput = document.querySelector('[name="Nombre"]');
+            if (nameInput) nameInput.focus();
+
+            // Image URL preview
+            const imageUrlInput = document.getElementById('imageUrlInput');
+            const previewImg = document.getElementById('previewImg');
+            const previewPlaceholder = document.getElementById('previewPlaceholder');
+
+            if (imageUrlInput) {
+                imageUrlInput.addEventListener('input', function() {
+                    const url = this.value.trim();
+                    
+                    if (url) {
+                        // Create or update preview image
+                        if (!previewImg) {
+                            const img = document.createElement('img');
+                            img.id = 'previewImg';
+                            img.alt = 'Preview';
+                            img.onerror = function() {
+                                this.style.display = 'none';
+                                previewPlaceholder.style.display = 'block';
+                            };
+                            img.onload = function() {
+                                this.style.display = 'block';
+                                previewPlaceholder.style.display = 'none';
+                            };
+                            document.getElementById('imagePreview').prepend(img);
+                            img.src = url;
+                        } else {
+                            previewImg.src = url;
+                            previewImg.style.display = 'block';
+                            previewPlaceholder.style.display = 'none';
+                            previewImg.onerror = function() {
+                                this.style.display = 'none';
+                                previewPlaceholder.style.display = 'block';
+                            };
+                        }
+                    } else {
+                        if (previewImg) previewImg.style.display = 'none';
+                        previewPlaceholder.style.display = 'block';
+                    }
+                });
+            }
+
+            // Character counter for description
+            const descTextarea = document.querySelector('[name="Descripcion"]');
+            if (descTextarea) {
+                const hint = descTextarea.nextElementSibling?.nextElementSibling;
+                if (hint && hint.classList.contains('form-hint')) {
+                    const updateCount = () => {
+                        const remaining = 500 - descTextarea.value.length;
+                        hint.textContent = `${remaining} caracteres restantes`;
+                        hint.style.color = remaining < 50 ? '#f59e0b' : '';
+                    };
+                    descTextarea.addEventListener('input', updateCount);
+                    updateCount();
+                }
+            }
+        });
+    </script>
 }
