@@ -845,87 +845,9 @@
         }
     </div>
 
-    <!-- Product Grid -->
-    <div class="product-grid" id="productGrid">
-        @if (Model.ProductosPaginados != null && Model.ProductosPaginados.Any())
-        {
-            @foreach (var p in Model.ProductosPaginados)
-            {
-                string stockClass = p.Stock > 10 ? "in-stock" : (p.Stock > 0 ? "low-stock" : "out-stock");
-                string stockText = p.Stock > 10 ? "En stock" : (p.Stock > 0 ? $"¡Quedan {p.Stock}!" : "Agotado");
-                string categorySlug = (p.Categoria?.Nombre ?? "sin-categoria").ToLower().Replace(" ", "-");
-
-                <div class="product-card" data-category="@categorySlug">
-                    <div class="product-image">
-                        <img src="@p.ImagenUrl" alt="@p.Nombre" onerror="this.onerror=null;this.src='/images/no-image.svg';" />
-                        <span class="stock-badge @stockClass">@stockText</span>
-                        <div class="product-overlay">
-                            <button class="overlay-btn view-btn" onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            @if (!User.Identity.IsAuthenticated)
-                            {
-                                <button class="overlay-btn cart-btn" onclick="showLoginModal()">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                            }
-                            else if (User.IsInRole("Cliente") && p.Stock > 0)
-                            {
-                                <button class="overlay-btn cart-btn index-add-btn" data-id="@p.IdProducto">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                            }
-                        </div>
-                    </div>
-                    <div class="product-body">
-                        <span class="product-category">@(p.Categoria?.Nombre ?? "Sin categoría")</span>
-                        <h3 class="product-title">@p.Nombre</h3>
-                        <p class="product-desc">@p.Descripcion</p>
-                        <div class="product-footer">
-                            <div class="product-price">
-                                S/ @p.Precio.ToString("F2")
-                            </div>
-                        </div>
-                        <!-- Mobile Actions -->
-                        <div class="mobile-actions">
-                            <button class="btn-icon flex-fill" onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                            @if (!User.Identity.IsAuthenticated)
-                            {
-                                <button class="btn-icon primary flex-fill" onclick="showLoginModal()">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                            }
-                            else if (User.IsInRole("Cliente") && p.Stock > 0)
-                            {
-                                <button class="btn-icon primary flex-fill index-add-btn" data-id="@p.IdProducto">
-                                    <i class="bi bi-cart-plus"></i>
-                                </button>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+    <div id="productListContainer">
+        @Html.Partial("~/Views/Productos/_ProductListPartial.cshtml", Model)
     </div>
-
-    <!-- Paginación -->
-    @if (Model.ProductosPaginados != null && Model.ProductosPaginados.PageCount > 1)
-    {
-        <div class="pagination-wrapper">
-            @Html.PagedListPager(
-                Model.ProductosPaginados,
-                page => Url.Action("IndexProductos", new { page }),
-                new PagedListRenderOptions
-                {
-                    LiElementClasses = new[] { "page-item" },
-                    PageClasses = new[] { "page-link" },
-                    UlElementClasses = new[] { "pagination" }
-                }
-            )
-        </div>
-    }
 </section>
 
 <!-- Modal de detalles -->
@@ -945,6 +867,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         // ===== CAROUSEL =====
         let currentSlide = 0;
@@ -989,26 +912,68 @@
         // Resize handler
         window.addEventListener('resize', updateCarousel);
 
-        // ===== CATEGORY FILTER =====
-        document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                // Update active tab
-                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+        // ===== CARGA AJAX CON AXIOS (sin refresh completo) =====
+        (function(){
+            const partialUrl = '@Url.Action("IndexProductosPartial", "Producto")';
 
-                const category = this.dataset.category;
-                const cards = document.querySelectorAll('.product-card');
-
-                cards.forEach(card => {
-                    if (category === 'all' || card.dataset.category === category) {
-                        card.style.display = '';
-                        card.style.animation = 'fadeIn 0.3s ease';
+            function setActiveTab(category) {
+                document.querySelectorAll('.category-tab').forEach(t => {
+                    if ((t.dataset.category || 'all').toLowerCase() === (category || 'all').toLowerCase()) {
+                        t.classList.add('active');
                     } else {
-                        card.style.display = 'none';
+                        t.classList.remove('active');
                     }
                 });
+            }
+
+            function loadProducts(opts){
+                const category = opts.category || 'all';
+                const page = opts.page || 1;
+                axios.get(partialUrl, { params: { category, page } })
+                .then(resp => {
+                    const container = document.getElementById('productListContainer');
+                    if (container) container.innerHTML = resp.data;
+                    setActiveTab(category);
+                    // scroll to products area
+                    const top = container ? container.getBoundingClientRect().top + window.scrollY - 120 : 0;
+                    window.scrollTo({ top, behavior: 'smooth' });
+                })
+                .catch(err => {
+                    console.error('Error cargando productos:', err);
+                });
+            }
+
+            // Click en tabs de categoría -> carga parcial
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.dataset.category || 'all';
+                    loadProducts({ category, page: 1 });
+                });
             });
-        });
+
+            // Interceptar clicks en la paginación generada por PagedList
+            document.addEventListener('click', function(e){
+                const a = e.target.closest('.pagination a');
+                if (!a) return;
+                e.preventDefault();
+                try {
+                    const url = new URL(a.href);
+                    const category = url.searchParams.get('category') || 'all';
+                    const page = url.searchParams.get('page') || 1;
+                    loadProducts({ category, page });
+                } catch (ex) {
+                    // fallback: recarga
+                    window.location.href = a.href;
+                }
+            });
+
+            // Inicial: mantener la pestaña activa según querystring
+            (function(){
+                const params = new URLSearchParams(window.location.search);
+                const currentCategory = (params.get('category') || 'all').toLowerCase();
+                setActiveTab(currentCategory);
+            })();
+        })();
 
         // ===== TOAST NOTIFICATION =====
         function showToast(message) {

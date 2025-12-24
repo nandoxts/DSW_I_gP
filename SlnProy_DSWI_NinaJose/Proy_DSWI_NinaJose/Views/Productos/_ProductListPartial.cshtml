@@ -1,0 +1,85 @@
+@model Proy_DSWI_NinaJose.Models.ViewModels.ProductoCat
+
+<!-- Product Grid Partial -->
+<div>
+    <div class="product-grid" id="productGrid">
+        @if (Model.ProductosPaginados != null && Model.ProductosPaginados.Any())
+        {
+            @foreach (var p in Model.ProductosPaginados)
+            {
+                string stockClass = p.Stock > 10 ? "in-stock" : (p.Stock > 0 ? "low-stock" : "out-stock");
+                string stockText = p.Stock > 10 ? "En stock" : (p.Stock > 0 ? $"¡Quedan {p.Stock}!" : "Agotado");
+                string categorySlug = (p.Categoria?.Nombre ?? "sin-categoria").ToLower().Replace(" ", "-");
+
+                <div class="product-card" data-category="@categorySlug">
+                    <div class="product-image">
+                        <img src="@p.ImagenUrl" alt="@p.Nombre" onerror="this.onerror=null;this.src='/images/no-image.svg';" />
+                        <span class="stock-badge @stockClass">@stockText</span>
+                        <div class="product-overlay">
+                            <button class="overlay-btn view-btn" onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                <button class="overlay-btn cart-btn" onclick="showLoginModal()">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            }
+                            else if (User.IsInRole("Cliente") && p.Stock > 0)
+                            {
+                                <button class="overlay-btn cart-btn index-add-btn" data-id="@p.IdProducto">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                    <div class="product-body">
+                        <span class="product-category">@(p.Categoria?.Nombre ?? "Sin categoría")</span>
+                        <h3 class="product-title">@p.Nombre</h3>
+                        <p class="product-desc">@p.Descripcion</p>
+                        <div class="product-footer">
+                            <div class="product-price">
+                                S/ @p.Precio.ToString("F2")
+                            </div>
+                        </div>
+                        <div class="mobile-actions">
+                            <button class="btn-icon flex-fill" onclick="showDetails('@Url.Action("DetailsProducto","Producto", new { id = p.IdProducto })')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            @if (!User.Identity.IsAuthenticated)
+                            {
+                                <button class="btn-icon primary flex-fill" onclick="showLoginModal()">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            }
+                            else if (User.IsInRole("Cliente") && p.Stock > 0)
+                            {
+                                <button class="btn-icon primary flex-fill index-add-btn" data-id="@p.IdProducto">
+                                    <i class="bi bi-cart-plus"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Paginación -->
+    @if (Model.ProductosPaginados != null && Model.ProductosPaginados.PageCount > 1)
+    {
+        var currentCategory = ViewContext.HttpContext.Request.Query["category"].ToString() ?? "all";
+        <div class="pagination-wrapper">
+            @Html.PagedListPager(
+                Model.ProductosPaginados,
+                page => Url.Action("IndexProductos", new { page, category = currentCategory }),
+                new PagedListRenderOptions
+                {
+                    LiElementClasses = new[] { "page-item" },
+                    PageClasses = new[] { "page-link" },
+                    UlElementClasses = new[] { "pagination" }
+                }
+            )
+        </div>
+    }
+</div>

@@ -18,19 +18,40 @@ namespace Proy_DSWI_NinaJose.Controllers
 
             
         [AllowAnonymous]
-        public async Task<IActionResult> IndexProductos(int? page)
+        public async Task<IActionResult> IndexProductos(int? page, string? category)
         {
             int pageSize = 8; // Aumentado para mejor visualización
             int pageNumber = page ?? 1;
 
             // Obtener todos los productos con sus categorías y detalles de órdenes
-            var productos = await _ctx.Productos
+            var allProducts = await _ctx.Productos
                 .Include(p => p.Categoria)
                 .Include(p => p.OrdenDetalles) // Incluir para calcular ventas
                 .ToListAsync();
 
+            // Si se recibió un filtro de categoría, lo aplicamos sobre la lista completa
+            var productos = allProducts;
+            if (!string.IsNullOrEmpty(category) && category != "all")
+            {
+                // Buscar nombre de categoría que coincida con el slug recibido
+                var matchedCategory = allProducts
+                    .Select(p => p.Categoria?.Nombre ?? "Sin categoría")
+                    .Distinct()
+                    .FirstOrDefault(name => (name ?? "").ToLower().Replace(" ", "-") == category.ToLower());
+
+                if (!string.IsNullOrEmpty(matchedCategory))
+                {
+                    productos = allProducts.Where(p => (p.Categoria?.Nombre ?? "Sin categoría") == matchedCategory).ToList();
+                }
+                else
+                {
+                    // Si no hay coincidencia, devolver lista vacía
+                    productos = new List<Producto>();
+                }
+            }
+
             // Obtener los productos más vendidos (Top 6)
-            var masVendidos = productos
+            var masVendidos = allProducts
                 .Select(p => new
                 {
                     Producto = p,
@@ -55,13 +76,74 @@ namespace Proy_DSWI_NinaJose.Controllers
             var model = new ProductoCat
             {
                 Destacados = masVendidos,
-                ProductosPorCategoria = productos
+                ProductosPorCategoria = allProducts
                     .GroupBy(p => p.Categoria?.Nombre ?? "Sin categoría")
                     .ToDictionary(g => g.Key, g => g.ToList()),
                 ProductosPaginados = productosPaginados
             };
 
             return View("~/Views/Productos/IndexProductos.cshtml", model);
+        }
+
+        // Partial endpoint para cargar solo la lista de productos (usada por AJAX)
+        [AllowAnonymous]
+        public async Task<IActionResult> IndexProductosPartial(int? page, string? category)
+        {
+            int pageSize = 8;
+            int pageNumber = page ?? 1;
+
+            var allProducts = await _ctx.Productos
+                .Include(p => p.Categoria)
+                .Include(p => p.OrdenDetalles)
+                .ToListAsync();
+
+            var productos = allProducts;
+            if (!string.IsNullOrEmpty(category) && category != "all")
+            {
+                var matchedCategory = allProducts
+                    .Select(p => p.Categoria?.Nombre ?? "Sin categoría")
+                    .Distinct()
+                    .FirstOrDefault(name => (name ?? "").ToLower().Replace(" ", "-") == category.ToLower());
+
+                if (!string.IsNullOrEmpty(matchedCategory))
+                {
+                    productos = allProducts.Where(p => (p.Categoria?.Nombre ?? "Sin categoría") == matchedCategory).ToList();
+                }
+                else
+                {
+                    productos = new List<Producto>();
+                }
+            }
+
+            var masVendidos = allProducts
+                .Select(p => new
+                {
+                    Producto = p,
+                    TotalVendido = p.OrdenDetalles?.Sum(od => od.Cantidad) ?? 0
+                })
+                .Where(x => x.TotalVendido > 0)
+                .OrderByDescending(x => x.TotalVendido)
+                .Take(6)
+                .Select(x => x.Producto)
+                .ToList();
+
+            if (!masVendidos.Any())
+            {
+                masVendidos = productos.Take(6).ToList();
+            }
+
+            var productosPaginados = productos.ToPagedList(pageNumber, pageSize);
+
+            var model = new ProductoCat
+            {
+                Destacados = masVendidos,
+                ProductosPorCategoria = allProducts
+                    .GroupBy(p => p.Categoria?.Nombre ?? "Sin categoría")
+                    .ToDictionary(g => g.Key, g => g.ToList()),
+                ProductosPaginados = productosPaginados
+            };
+
+            return PartialView("~/Views/Productos/_ProductListPartial.cshtml", model);
         }
 
         // GET: /Producto/DetailsProducto/5
