@@ -137,11 +137,54 @@ namespace Proy_DSWI_NinaJose.Controllers
         [HttpPost, Authorize(Roles = "Admin"), ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmOrder(int id)
         {
-            var orden = await _ctx.Ordenes.FindAsync(id);
+            var orden = await _ctx.Ordenes
+                .Include(o => o.OrdenDetalles)
+                .FirstOrDefaultAsync(o => o.IdOrden == id);
             if (orden == null) return NotFound();
 
-            orden.Estado = "Completada";
-            await _ctx.SaveChangesAsync();
+            // Usar transacción para evitar estados intermedios
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                // Verificar stock disponible para todos los items
+                foreach (var det in orden.OrdenDetalles)
+                {
+                    var producto = await _ctx.Productos.FindAsync(det.IdProducto);
+                    if (producto == null)
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = $"Producto (ID {det.IdProducto}) no encontrado.";
+                        return RedirectToAction(nameof(IndexOrdenesAdmin));
+                    }
+
+                    if (producto.Stock < det.Cantidad)
+                    {
+                        await tx.RollbackAsync();
+                        TempData["Error"] = $"Stock insuficiente para '{producto.Nombre}'. Disponible: {producto.Stock}, requerido: {det.Cantidad}.";
+                        return RedirectToAction(nameof(IndexOrdenesAdmin));
+                    }
+                }
+
+                // Restar stock
+                foreach (var det in orden.OrdenDetalles)
+                {
+                    var producto = await _ctx.Productos.FindAsync(det.IdProducto);
+                    producto.Stock -= det.Cantidad;
+                    _ctx.Productos.Update(producto);
+                }
+
+                // Marcar orden completada
+                orden.Estado = "Completada";
+                _ctx.Ordenes.Update(orden);
+                await _ctx.SaveChangesAsync();
+
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
 
             return RedirectToAction(nameof(IndexOrdenesAdmin));
         }

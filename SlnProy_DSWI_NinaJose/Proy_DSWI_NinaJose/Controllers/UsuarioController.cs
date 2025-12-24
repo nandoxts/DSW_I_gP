@@ -52,9 +52,26 @@ namespace Proy_DSWI_NinaJose.Controllers
 
         // POST /Usuario/Edit/{id}
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditUsuario(int id, [Bind("IdUsuario,Nombre,Email,Rol")] Usuario usuario)
+        public async Task<IActionResult> EditUsuario(int id, int IdUsuario, string Nombre, string Email, string Rol)
         {
-            if (id != usuario.IdUsuario) return BadRequest();
+            if (id != IdUsuario) return BadRequest();
+
+            // Validación manual para evitar validar propiedades no enviadas (p.ej. PasswordHash)
+            if (string.IsNullOrWhiteSpace(Nombre)) ModelState.AddModelError("Nombre", "El nombre es obligatorio.");
+            if (string.IsNullOrWhiteSpace(Email)) ModelState.AddModelError("Email", "El email es obligatorio.");
+
+            var usuarioEntity = await _ctx.Usuarios.FindAsync(id);
+            if (usuarioEntity == null) return NotFound();
+
+            // Verificar email único (si cambió)
+            if (!string.Equals(usuarioEntity.Email, Email, System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (await _ctx.Usuarios.AnyAsync(u => u.Email == Email && u.IdUsuario != id))
+                {
+                    ModelState.AddModelError("Email", "El email ya está registrado para otro usuario.");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewData["Roles"] = new SelectList(
@@ -62,14 +79,24 @@ namespace Proy_DSWI_NinaJose.Controllers
                         new { Value = "Cliente", Text = "Usuario" },
                         new { Value = "Admin",   Text = "Administrador" }
                     },
-                    "Value", "Text", usuario.Rol
+                    "Value", "Text", usuarioEntity.Rol
                 );
-                return View(usuario);
+
+                // Preparar modelo para la vista (mostrar los valores intentados)
+                usuarioEntity.Nombre = Nombre;
+                usuarioEntity.Email = Email;
+                usuarioEntity.Rol = Rol;
+                return View(usuarioEntity);
             }
+
+            // Actualizar sólo los campos editables
+            usuarioEntity.Nombre = Nombre;
+            usuarioEntity.Email = Email;
+            usuarioEntity.Rol = Rol;
 
             try
             {
-                _ctx.Update(usuario);
+                _ctx.Update(usuarioEntity);
                 await _ctx.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)

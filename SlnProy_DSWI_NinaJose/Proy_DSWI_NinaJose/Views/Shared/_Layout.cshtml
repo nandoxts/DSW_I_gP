@@ -180,15 +180,8 @@
         function showLoginModal() { closeAllModals(); new bootstrap.Modal(document.getElementById('loginModal')).show(); }
         function showRegisterModal() { closeAllModals(); new bootstrap.Modal(document.getElementById('registerModal')).show(); }
 
-        $(document).on('click', '.index-add-btn', function () {
-            var id = $(this).data('id'), token = $('input[name="__RequestVerificationToken"]').first().val();
-            $.post('@Url.Action("AddToCart", "Carrito")', { __RequestVerificationToken: token, id: id, cantidad: 1 })
-                .done(function (res) {
-                    $('#addCartAlert').removeClass('d-none');
-                    setTimeout(function () { $('#addCartAlert').addClass('d-none'); }, 1500);
-                    $('#cartCountBadge').text(res.newCount).removeClass('d-none');
-                });
-        });
+        // NOTE: handler for .index-add-btn moved to view-specific scripts (IndexProductos.js/IndexProductos.cshtml)
+        // to avoid duplicate submissions. Keep detailAddBtn and form handlers here.
 
         $(document).on('submit', '#loginForm', function (e) {
             e.preventDefault();
