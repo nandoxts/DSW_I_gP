@@ -48,7 +48,7 @@
                     @if (isAuth)
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="profileMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center" href="javascript:void(0)" id="profileMenu" role="button" aria-expanded="false" onclick="toggleProfileDropdown(event)">
                                 <span class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center me-2" style="width:34px;height:34px;font-weight:600;">@((!string.IsNullOrEmpty(userName) && userName.Length>0)? userName.Substring(0,1).ToUpper() : "U")</span>
                                 <span class="d-none d-md-inline">@userName</span>
                             </a>
@@ -210,6 +210,43 @@
                     $('#addCartAlert').removeClass('d-none');
                     setTimeout(function () { $('#addCartAlert').addClass('d-none'); }, 1500);
                 }).fail(function () { alert('Error al añadir al carrito desde detalles'); });
+        });
+
+        // Custom dropdown control for profile (no Bootstrap JS required)
+        function toggleProfileDropdown(e) {
+            e.preventDefault();
+            var toggle = document.getElementById('profileMenu');
+            if (!toggle) return;
+            var menu = toggle.nextElementSibling;
+            var parent = toggle.closest('.nav-item.dropdown');
+            var expanded = toggle.getAttribute('aria-expanded') === 'true';
+            if (parent) parent.classList.toggle('show');
+            if (menu) menu.classList.toggle('show');
+            toggle.setAttribute('aria-expanded', (!expanded).toString());
+        }
+
+        function closeProfileDropdown() {
+            var toggle = document.getElementById('profileMenu');
+            if (!toggle) return;
+            var menu = toggle.nextElementSibling;
+            var parent = toggle.closest('.nav-item.dropdown');
+            if (parent) parent.classList.remove('show');
+            if (menu) menu.classList.remove('show');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (ev) {
+            var toggle = document.getElementById('profileMenu');
+            if (!toggle) return;
+            var parent = toggle.closest('.nav-item.dropdown');
+            if (!parent) return;
+            if (!parent.contains(ev.target)) closeProfileDropdown();
+        });
+
+        // Close on ESC
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape' || ev.key === 'Esc') closeProfileDropdown();
         });
     </script>
 

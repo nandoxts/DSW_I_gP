@@ -4,6 +4,9 @@ using Microsoft.EntityFrameworkCore;
 using Proy_DSWI_NinaJose.Extensions;   // <-- para GetObject<>, SetObject<>
 using Proy_DSWI_NinaJose.Models;
 using System;
+using System.IO;
+using System.Net.Mail;
+using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -15,10 +18,12 @@ namespace Proy_DSWI_NinaJose.Controllers
     {
         private const string SessionKey = "Carrito";
         private readonly BDPROYVENTASContex _ctx;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration _config;
 
-        public OrdenController(BDPROYVENTASContex ctx)
+        public OrdenController(BDPROYVENTASContex ctx, Microsoft.Extensions.Configuration.IConfiguration config)
         {
             _ctx = ctx;
+            _config = config;
         }
 
         // GET: /Orden/Checkout
@@ -179,6 +184,25 @@ namespace Proy_DSWI_NinaJose.Controllers
                 await _ctx.SaveChangesAsync();
 
                 await tx.CommitAsync();
+
+                // Enviar correo de confirmación con detalle de la orden
+                try
+                {
+                    var emailTo = orden.Usuario?.Email;
+                    if (string.IsNullOrEmpty(emailTo))
+                    {
+                        // intentar obtener email desde la base si no está cargado
+                        var u = await _ctx.Usuarios.FindAsync(orden.IdUsuario);
+                        emailTo = u?.Email;
+                    }
+
+                    if (!string.IsNullOrEmpty(emailTo))
+                        await SendOrderEmailAsync(orden, emailTo);
+                }
+                catch
+                {
+                    // No fallar la confirmación por problemas de correo; registrar si se desea
+                }
             }
             catch
             {
@@ -203,6 +227,61 @@ namespace Proy_DSWI_NinaJose.Controllers
                 return NotFound();
 
             return View("Confirmation", orden);
+        }
+
+        // Envia el email con el detalle de la orden. Si no hay configuración SMTP, guarda un HTML en wwwroot/email-logs
+        private async Task SendOrderEmailAsync(Orden orden, string toEmail)
+        {
+            // Construir cuerpo HTML simple
+            var sb = new StringBuilder();
+            sb.AppendLine($"<h2>Detalle de la orden #{orden.IdOrden}</h2>");
+            sb.AppendLine($"<p>Fecha: {orden.Fecha:dd/MM/yyyy HH:mm}</p>");
+            sb.AppendLine($"<p>Total: {orden.Total:C}</p>");
+            sb.AppendLine("<table border='1' cellpadding='6' cellspacing='0' style='border-collapse:collapse;width:100%'>");
+            sb.AppendLine("<tr><th>Producto</th><th>Precio</th><th>Cantidad</th><th>Subtotal</th></tr>");
+            var detalles = await _ctx.OrdenDetalles.Where(d => d.IdOrden == orden.IdOrden).Include(d => d.Producto).ToListAsync();
+            foreach (var d in detalles)
+            {
+                var nombre = d.Producto?.Nombre ?? $"Producto {d.IdProducto}";
+                sb.AppendLine($"<tr><td>{System.Net.WebUtility.HtmlEncode(nombre)}</td><td>{d.PrecioUnitario:C}</td><td>{d.Cantidad}</td><td>{(d.PrecioUnitario * d.Cantidad):C}</td></tr>");
+            }
+            sb.AppendLine("</table>");
+
+            var subject = $"Confirmación de orden #{orden.IdOrden} - MiTienda";
+            var htmlBody = sb.ToString();
+
+            // Leer configuración SMTP desde variables de entorno o appsettings
+            var smtpHost = _config["SMTP:Host"] ?? Environment.GetEnvironmentVariable("SMTP_HOST");
+            var smtpPortRaw = _config["SMTP:Port"] ?? Environment.GetEnvironmentVariable("SMTP_PORT");
+            var smtpUser = _config["SMTP:User"] ?? Environment.GetEnvironmentVariable("SMTP_USER");
+            var smtpPass = _config["SMTP:Pass"] ?? Environment.GetEnvironmentVariable("SMTP_PASS");
+            var fromEmail = _config["SMTP:From"] ?? _config["SendGrid:FromEmail"] ?? Environment.GetEnvironmentVariable("SMTP_FROM");
+
+            if (!string.IsNullOrEmpty(smtpHost) && int.TryParse(smtpPortRaw, out var smtpPort))
+            {
+                using var msg = new MailMessage();
+                msg.From = new MailAddress(fromEmail ?? "noreply@mitienda.local", "MiTienda");
+                msg.To.Add(toEmail);
+                msg.Subject = subject;
+                msg.Body = htmlBody;
+                msg.IsBodyHtml = true;
+
+                using var client = new SmtpClient(smtpHost, smtpPort);
+                if (!string.IsNullOrEmpty(smtpUser))
+                {
+                    client.Credentials = new System.Net.NetworkCredential(smtpUser, smtpPass);
+                }
+                client.EnableSsl = true;
+                await client.SendMailAsync(msg);
+            }
+            else
+            {
+                // No hay SMTP: escribir el HTML a disco para revisión
+                var logsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "email-logs");
+                Directory.CreateDirectory(logsDir);
+                var filePath = Path.Combine(logsDir, $"order_{orden.IdOrden}_{DateTime.Now:yyyyMMddHHmmss}.html");
+                await System.IO.File.WriteAllTextAsync(filePath, htmlBody, Encoding.UTF8);
+            }
         }
     }
 }
